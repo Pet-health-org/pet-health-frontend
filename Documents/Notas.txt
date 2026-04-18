@@ -1,0 +1,16 @@
+src/
+├── assets/          # Imágenes, fuentes, estilos globales
+├── components/      # Componentes compartidos y genéricos (Botones, Inputs)
+├── config/          # Variables de entorno, configuración de axios
+├── context/         # Contextos de React (Auth, Tema)
+├── features/        # Lógica dividida por características (login, dashboard)
+│   └── home/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       └── index.js
+├── hooks/           # Custom hooks reutilizables
+├── pages/           # Vistas principales (Home, Perfil)
+├── services/        # Llamadas a API compartidas
+├── utils/           # Funciones de ayuda
+└── App.jsx
