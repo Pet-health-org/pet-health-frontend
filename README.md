@@ -1,70 +1,64 @@
-# Getting Started with Create React App
+<p align="center">
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="blank"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" width="100" alt="JavaScript Logo" /></a>
+</p>
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<p align="center">Una plataforma moderna y profesional para la gestión integral de clínicas veterinarias.</p>
 
-## Available Scripts
+<p align="center">
+<a href="https://www.npmjs.com/~pethealth" target="_blank"><img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version" /></a>
+<a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License" /></a>
+<a href="https://reactjs.org/" target="_blank"><img src="https://img.shields.io/badge/react-v18.2.0-blue.svg" alt="React" /></a>
+<a href="https://vitejs.dev/" target="_blank"><img src="https://img.shields.io/badge/vite-v5.0.0-646CFF.svg" alt="Vite" /></a>
+<a href="https://tailwindcss.com/" target="_blank"><img src="https://img.shields.io/badge/tailwind-v3.3.0-38B2AC.svg" alt="Tailwind" /></a>
+</p>
 
-In the project directory, you can run:
+## Description
 
-### `npm start`
+**PetHealth** es el repositorio frontend de un sistema avanzado de administración veterinaria. Diseñado para ofrecer una interfaz fluida, rápida y segura, permitiendo a los profesionales de la salud animal centrarse en lo que realmente importa: el cuidado de los pacientes.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+El sistema cubre todo el ciclo de atención, desde el registro del propietario hasta el control de inventario y esquemas de vacunación.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project Setup
 
-### `npm test`
+```bash
+$ npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Compile and Run the project
 
-### `npm run build`
+```bash
+# development
+$ npm run dev
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# build
+$ npm run build
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# preview build
+$ npm run preview
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Core Features
 
-### `npm run eject`
+- **Gestion de Propietarios y Mascotas:** Perfiles detallados y vinculados.
+- **Agenda Medica:** Sistema de citas con validación de horarios.
+- **Historial Clinico:** Registro de consultas con monitoreo de constantes vitales.
+- **Control de Inmunización:** Seguimiento de vacunas y alertas preventivas.
+- **Inventario:** Gestión de stock con notificaciones de stock bajo.
+- **Dashboard de Reportes:** Estadísticas y analítica visual del estado de la clínica.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Tech Stack
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- [React](https://reactjs.org/) - Una biblioteca de JavaScript para construir interfaces de usuario.
+- [Vite](https://vitejs.dev/) - Herramienta de frontend de última generación.
+- [Tailwind CSS](https://tailwindcss.com/) - Un framework de CSS centrado en utilidades.
+- [Lucide Icons](https://lucide.dev/) - Un kit de iconos limpio y consistente.
+- [Context API](https://reactjs.org/docs/context.html) - Para la gestión del estado global de la aplicación.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Stay in touch
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- Author - [PetHealth Team]
+- Website - [https://pethealth.com](https://pethealth.com/)
 
-## Learn More
+## License
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+PetHealth is [MIT licensed](LICENSE).
