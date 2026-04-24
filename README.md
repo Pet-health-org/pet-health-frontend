@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://pethealth.com/" target="blank"><img src="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/activity.svg" width="120" alt="PetHealth Logo" /></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="blank"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" width="100" alt="JavaScript Logo" /></a>
 </p>
 
 <p align="center">Una plataforma moderna y profesional para la gestión integral de clínicas veterinarias.</p>
