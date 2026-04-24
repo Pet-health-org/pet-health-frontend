@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Layout from '../components/Layout/Layout';
+import Layout from '../layouts/Layout/Layout';
 import Card from '../components/Card/Card';
 import Button from '../components/Button/Button';
 import './DashboardPage.css';
