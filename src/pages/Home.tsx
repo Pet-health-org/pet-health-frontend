@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
 import { Activity } from 'lucide-react';
 
 type ModalType = 'login' | 'register' | null;
@@ -51,12 +52,14 @@ export function Home() {
 
 function LoginModal({ onClose }: { onClose: () => void }) {
   const { login } = useAuth();
+  const { notify } = useNotify();
   const navigate = useNavigate();
   const [role, setRole] = useState<'Administrador'|'Veterinario'|'Recepcionista'>('Administrador');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login
+    // Simple demo login
+    notify('success', 'Bienvenido', 'Has iniciado sesión como demo.');
     login({ id: '1', name: 'Usuario Demo', role });
     navigate('/dashboard');
   };
