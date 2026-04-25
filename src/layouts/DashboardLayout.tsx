@@ -64,23 +64,23 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-[#0A2540] text-white h-16 flex items-center justify-between px-6 sticky top-0 z-50 shadow-md">
+      <header className="bg-[#e0f2fe] text-[#0A2540] h-24 flex items-center justify-between px-6 sticky top-0 z-50 shadow-md border-b border-sky-100">
         <div className="flex items-center gap-3">
           {/* We assume logo.png exists in src/assets/styles/logo.png as requested */}
-          <img src="/src/assets/styles/logo.png" alt="PetHealth Logo" className="h-8 w-auto object-contain bg-white rounded-md p-1" onError={(e) => e.currentTarget.style.display = 'none'} />
-          <h1 className="text-xl font-bold tracking-wide">PetHealth</h1>
+          <img src="/src/assets/styles/logo.png" alt="PetHealth Logo" className="h-20 w-auto object-contain drop-shadow-md" onError={(e) => e.currentTarget.style.display = 'none'} />
+
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm text-right hidden sm:block">
             <p className="font-semibold">{user?.username}</p>
-            <p className="text-slate-300 text-xs">{user?.rol.description}</p>
+            <p className="text-slate-600 text-xs font-medium">{user?.rol.description}</p>
           </div>
           <button 
             onClick={logout}
-            className="p-2 hover:bg-slate-700 rounded-full transition-colors"
+            className="p-2 hover:bg-sky-100 rounded-full transition-colors"
             title="Cerrar sesión"
           >
-            <LogOut size={20} className="text-[#A8DADC]" />
+            <LogOut size={22} className="text-[#0A2540]" />
           </button>
         </div>
       </header>

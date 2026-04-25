@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/Button/Button';
 import Input from '../components/Input/Input';
 import Card from '../components/Card/Card';
+import logo from '../assets/styles/logo.png';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -24,8 +25,7 @@ const LoginPage = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <div className="login-logo">🐾</div>
-          <h1>Pet-Health</h1>
+          <img src={logo} alt="Pet-Health Logo" className="login-logo-img drop-shadow-md" style={{ width: '220px', height: 'auto', marginBottom: '1.5rem' }} />
           <p>Accede a tu cuenta</p>
         </div>
 
