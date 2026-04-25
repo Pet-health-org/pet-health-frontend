@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotificationContext';
-import { Activity } from 'lucide-react';
 import api from '../services/api';
+import logo from '../assets/styles/logo.png';
 
 type ModalType = 'login' | 'register' | null;
 
@@ -18,11 +18,9 @@ export function Home() {
 
       <div className="z-10 text-center space-y-8 p-6 max-w-2xl">
         <div className="flex flex-col items-center justify-center gap-4">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            {/* Replace with actual logo image later, using icon for fallback visually */}
-            <Activity size={64} className="text-[#0A2540]" />
+          <div className="flex justify-center items-center mb-2">
+            <img src={logo} alt="PetHealth Logo" className="h-64 w-64 object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300" />
           </div>
-          <h1 className="text-5xl font-extrabold text-[#0A2540] tracking-tight">PetHealth</h1>
           <p className="text-xl text-slate-600 max-w-lg mx-auto leading-relaxed">
             Gestión veterinaria moderna y eficiente. Cuidamos de los que más quieres con la mejor tecnología.
           </p>
