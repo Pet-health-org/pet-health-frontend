@@ -1,36 +1,7 @@
 import { useState, useCallback } from 'react';
 import { InventoryItem, InventoryMovement } from '../types';
 
-const initialItems: InventoryItem[] = [
-  {
-    id: '1',
-    code: 'VAC-001',
-    name: 'Vacuna Antirrábica',
-    description: 'Vacuna para rabia en caninos y felinos',
-    category: 'Vacuna',
-    presentation: 'Frasco 1ml',
-    unit: 'unidades',
-    stock: 5,
-    minStock: 10,
-    expiryDate: '2025-12-31',
-    provider: 'Farvet S.A.',
-    registrationDate: new Date().toISOString()
-  },
-  {
-    id: '2',
-    code: 'MED-001',
-    name: 'Amoxicilina 250mg',
-    description: 'Antibiótico de amplio espectro',
-    category: 'Medicamento',
-    presentation: 'Caja x 20 tabletas',
-    unit: 'unidades',
-    stock: 45,
-    minStock: 15,
-    expiryDate: '2024-08-20',
-    provider: 'VetLogistics',
-    registrationDate: new Date().toISOString()
-  }
-];
+const initialItems: InventoryItem[] = [];
 
 export function useInventory() {
   const [items, setItems] = useState<InventoryItem[]>(initialItems);
@@ -69,11 +40,21 @@ export function useInventory() {
     return items.filter(item => item.stock <= item.minStock);
   }, [items]);
 
+  const updateItem = useCallback((id: string, data: any) => {
+    // Stub
+  }, []);
+
+  const deleteItem = useCallback((id: string) => {
+    // Stub
+  }, []);
+
   return {
     items,
     movements,
     addItem,
     recordMovement,
-    getLowStockItems
+    getLowStockItems,
+    updateItem,
+    deleteItem
   };
 }

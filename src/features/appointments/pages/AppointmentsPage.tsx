@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../../../services/api';
 import { AppointmentCalendar } from '../components/AppointmentCalendar';
 import { AppointmentForm } from '../components/AppointmentForm';
 import { useAppointments } from '../hooks/useAppointments';
@@ -6,6 +7,7 @@ import { useOwners } from '../../owners/hooks/useOwners';
 import { usePets } from '../../pets/hooks/usePets';
 import { useNotify } from '../../../context/NotificationContext';
 import { Plus, LayoutGrid, List } from 'lucide-react';
+import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function AppointmentsPage() {
   const { appointments, isLoading, addAppointment, updateStatus } = useAppointments();
@@ -17,6 +19,19 @@ export function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedVetId, setSelectedVetId] = useState('all');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [veterinarians, setVeterinarians] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchVets = async () => {
+      try {
+        const res = await api.get('/veterinarios');
+        setVeterinarians(res.data);
+      } catch (error) {
+        console.error('Error fetching veterinarians:', error);
+      }
+    };
+    fetchVets();
+  }, []);
 
   const handleAdd = () => {
     setIsFormOpen(true);
@@ -32,6 +47,12 @@ export function AppointmentsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert 
+        moduleName="Citas" 
+        title="Módulo Funcional con Ajustes Pendientes"
+        customMessage="La asignación de veterinarios ya está vinculada a la base de datos real. Próximamente se integrarán los endpoints para guardar las citas programadas de forma persistente."
+        variant="info"
+      />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Agenda de Citas</h1>
@@ -69,6 +90,7 @@ export function AppointmentsPage() {
           onDateChange={setSelectedDate}
           selectedVetId={selectedVetId}
           onVetChange={setSelectedVetId}
+          veterinarians={veterinarians}
         />
       ) : (
         <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-500">
@@ -80,6 +102,7 @@ export function AppointmentsPage() {
         <AppointmentForm 
           owners={owners}
           pets={pets}
+          veterinarians={veterinarians}
           onClose={() => setIsFormOpen(false)}
           onSubmit={handleAddAppointment}
           isSubmitting={isLoading}

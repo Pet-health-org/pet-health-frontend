@@ -7,6 +7,7 @@ import { useNotify } from '../../../context/NotificationContext';
 import { Search, FileSearch } from 'lucide-react';
 import { Pet } from '../../pets/types';
 import { Consultation } from '../types';
+import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function ClinicalHistoryPage() {
   const { pets } = usePets();
@@ -39,6 +40,7 @@ export function ClinicalHistoryPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert moduleName="Historia Clínica" />
       <div>
         <h1 className="text-2xl font-bold text-[#0A2540]">Historial Clínico</h1>
         <p className="text-slate-500">Consulta y registro de atenciones veterinarias.</p>

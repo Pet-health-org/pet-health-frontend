@@ -1,4 +1,5 @@
 import { Mail, CheckCircle, XCircle, Clock, Settings } from 'lucide-react';
+import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 interface NotificationLog {
   id: string;
@@ -17,10 +18,11 @@ const mockLogs: NotificationLog[] = [
 export function NotificationsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert moduleName="Notificaciones" />
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#0A2540]">Notificaciones</h1>
-          <p className="text-slate-500">Historial de comunicaciones enviadas a los propietarios.</p>
+          <h1 className="text-2xl font-bold text-[#0A2540]">Centro de Notificaciones</h1>
+          <p className="text-slate-500">Gestión de alertas, recordatorios y comunicaciones.</p>
         </div>
         <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
           <Settings size={18} />

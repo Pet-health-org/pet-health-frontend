@@ -1,20 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Appointment } from '../types';
 
-const initialAppointments: Appointment[] = [
-  {
-    id: 'a1',
-    date: new Date().toISOString().split('T')[0],
-    time: '10:00',
-    petId: 'p1',
-    ownerId: '1',
-    vetId: 'v1',
-    reason: 'Control rutinario',
-    status: 'Programada',
-    durationMinutes: 30,
-    registrationDate: new Date().toISOString()
-  }
-];
+const initialAppointments: Appointment[] = [];
 
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
@@ -62,12 +49,22 @@ export function useAppointments() {
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   }, []);
 
+  const updateAppointment = useCallback((id: string, data: any) => {
+    // Stub
+  }, []);
+
+  const cancelAppointment = useCallback((id: string) => {
+    // Stub
+  }, []);
+
   return {
     appointments,
     isLoading,
     addAppointment,
     updateStatus,
-    checkConflict
+    checkConflict,
+    updateAppointment,
+    cancelAppointment
   };
 }
 

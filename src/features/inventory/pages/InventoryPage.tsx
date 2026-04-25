@@ -3,9 +3,11 @@ import { useInventory } from '../hooks/useInventory';
 import { useNotify } from '../../../context/NotificationContext';
 import { InventoryForm } from '../components/InventoryForm';
 import { Package, Plus, AlertTriangle, Search, Filter, History } from 'lucide-react';
+import { InventoryItem } from '../types';
+import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function InventoryPage() {
-  const { items, movements, addItem, getLowStockItems } = useInventory();
+  const { items, movements, addItem, getLowStockItems, updateItem, deleteItem } = useInventory();
   const { notify } = useNotify();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,6 +27,7 @@ export function InventoryPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert moduleName="Inventario" />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Gestión de Inventario</h1>
