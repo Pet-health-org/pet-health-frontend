@@ -1,62 +1,83 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import api from '../../../services/api';
 import { Owner } from '../types';
 
-// Mock initial data
-const initialOwners: Owner[] = [
-  {
-    id: '1',
-    firstName: 'Juan',
-    lastName: 'Pérez',
-    identification: '12345678',
-    email: 'juan.perez@example.com',
-    phone: '555-0123',
-    address: 'Calle Falsa 123, Ciudad',
-    registrationDate: '2023-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    firstName: 'María',
-    lastName: 'Gómez',
-    identification: '87654321',
-    email: 'maria.gomez@example.com',
-    phone: '555-0124',
-    address: 'Avenida Siempre Viva 742, Ciudad',
-    registrationDate: '2023-02-20T14:30:00Z'
-  }
-];
-
 export function useOwners() {
-  const [owners, setOwners] = useState<Owner[]>(initialOwners);
+  const [owners, setOwners] = useState<Owner[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addOwner = useCallback((ownerData: Omit<Owner, 'id' | 'registrationDate'>) => {
+  const fetchOwners = useCallback(async () => {
     setIsLoading(true);
-    // Simulating API call
-    setTimeout(() => {
-      const newOwner: Owner = {
-        ...ownerData,
-        id: Math.random().toString(36).substr(2, 9),
-        registrationDate: new Date().toISOString(),
-      };
-      setOwners(prev => [newOwner, ...prev]);
+    try {
+      const response = await api.get('/propietarios');
+      // Map backend users to frontend owners
+      const mappedOwners: Owner[] = response.data.map((user: any) => ({
+        id: user.id,
+        firstName: user.username, // Using username as name since backend is simple
+        lastName: '',
+        identification: 'N/A',
+        email: user.email,
+        phone: 'N/A',
+        address: 'N/A',
+        registrationDate: user.createdAt,
+      }));
+      setOwners(mappedOwners);
+    } catch (error) {
+      console.error('Error fetching owners:', error);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   }, []);
 
-  const updateOwner = useCallback((id: string, ownerData: Partial<Owner>) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setOwners(prev => prev.map(o => o.id === id ? { ...o, ...ownerData } : o));
-      setIsLoading(false);
-    }, 500);
-  }, []);
+  useEffect(() => {
+    fetchOwners();
+  }, [fetchOwners]);
 
-  const deleteOwner = useCallback((id: string) => {
+  const addOwner = useCallback(async (ownerData: Omit<Owner, 'id' | 'registrationDate'>) => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await api.post('/users', {
+        username: ownerData.firstName,
+        email: ownerData.email,
+        password: 'Password123!', // Default password for new owners
+        rolId: 'propietario'
+      });
+      await fetchOwners();
+    } catch (error) {
+      console.error('Error adding owner:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchOwners]);
+
+  const updateOwner = useCallback(async (id: string, ownerData: Partial<Owner>) => {
+    setIsLoading(true);
+    try {
+      await api.patch(`/users/${id}`, {
+        username: ownerData.firstName,
+        email: ownerData.email,
+      });
+      await fetchOwners();
+    } catch (error) {
+      console.error('Error updating owner:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchOwners]);
+
+  const deleteOwner = useCallback(async (id: string) => {
+    setIsLoading(true);
+    try {
+      await api.delete(`/users/${id}`);
       setOwners(prev => prev.filter(o => o.id !== id));
+    } catch (error) {
+      console.error('Error deleting owner:', error);
+      throw error;
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   }, []);
 
   return {
@@ -64,6 +85,7 @@ export function useOwners() {
     isLoading,
     addOwner,
     updateOwner,
-    deleteOwner
+    deleteOwner,
+    refresh: fetchOwners
   };
 }

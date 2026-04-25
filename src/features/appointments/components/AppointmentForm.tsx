@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
-import { Appointment, Veterinarian, MOCK_VETERINARIANS } from '../types';
+import { Appointment } from '../types';
 import { Owner } from '../../owners/types';
 import { Pet } from '../../pets/types';
 
 interface AppointmentFormProps {
   owners: Owner[];
   pets: Pet[];
+  veterinarians: any[];
   onClose: () => void;
   onSubmit: (data: Omit<Appointment, 'id' | 'registrationDate' | 'status'>) => { success: boolean; message?: string };
   isSubmitting?: boolean;
 }
 
-export function AppointmentForm({ owners, pets, onClose, onSubmit, isSubmitting }: AppointmentFormProps) {
+export function AppointmentForm({ owners, pets, veterinarians, onClose, onSubmit, isSubmitting }: AppointmentFormProps) {
   const [formData, setFormData] = useState({
     ownerId: '',
     petId: '',
@@ -117,8 +118,8 @@ export function AppointmentForm({ owners, pets, onClose, onSubmit, isSubmitting 
                 onChange={(e) => setFormData({...formData, vetId: e.target.value})}
               >
                 <option value="">Seleccione veterinario...</option>
-                {MOCK_VETERINARIANS.map(v => (
-                  <option key={v.id} value={v.id}>{v.name} - {v.specialty}</option>
+                {veterinarians.map((v: any) => (
+                  <option key={v.id} value={v.id}>Dra/Dr. {v.username}</option>
                 ))}
               </select>
             </div>

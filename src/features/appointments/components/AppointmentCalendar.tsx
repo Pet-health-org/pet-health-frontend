@@ -1,5 +1,5 @@
 import { Clock, User } from 'lucide-react';
-import { Appointment, Veterinarian, MOCK_VETERINARIANS } from '../types';
+import { Appointment } from '../types';
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
@@ -7,9 +7,10 @@ interface AppointmentCalendarProps {
   onDateChange: (date: string) => void;
   selectedVetId: string;
   onVetChange: (id: string) => void;
+  veterinarians: any[];
 }
 
-export function AppointmentCalendar({ appointments, selectedDate, onDateChange, selectedVetId, onVetChange }: AppointmentCalendarProps) {
+export function AppointmentCalendar({ appointments, selectedDate, onDateChange, selectedVetId, onVetChange, veterinarians }: AppointmentCalendarProps) {
   const timeSlots = generateTimeSlots('08:00', '18:00', 30);
 
   const getAppointmentAt = (time: string) => {
@@ -36,8 +37,8 @@ export function AppointmentCalendar({ appointments, selectedDate, onDateChange, 
             onChange={(e) => onVetChange(e.target.value)}
           >
             <option value="all">Todos los veterinarios</option>
-            {MOCK_VETERINARIANS.map(v => (
-              <option key={v.id} value={v.id}>{v.name}</option>
+            {veterinarians.map((v: any) => (
+              <option key={v.id} value={v.id}>Dra/Dr. {v.username}</option>
             ))}
           </select>
         </div>
@@ -83,7 +84,7 @@ export function AppointmentCalendar({ appointments, selectedDate, onDateChange, 
                     <p className="text-xs font-semibold text-[#0A2540] truncate">Mascota: {app.petId}</p>
                     <div className="flex items-center gap-1 text-[10px] text-slate-500">
                       <User size={10} />
-                      <span className="truncate">{MOCK_VETERINARIANS.find(v => v.id === app.vetId)?.name}</span>
+                      <span className="truncate">{veterinarians.find((v: any) => v.id === app.vetId)?.username}</span>
                     </div>
                   </div>
                 ) : (

@@ -1,15 +1,17 @@
 import { Calendar, Syringe, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { DevelopmentAlert } from '../components/DevelopmentAlert';
 
 export function Dashboard() {
   const { user } = useAuth();
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert moduleName="Estadísticas y Resumen" />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Dashboard</h1>
-          <p className="text-slate-500">Bienvenido/a, {user?.name}. Aquí está el resumen de hoy.</p>
+          <p className="text-slate-500">Bienvenido/a, {user?.username}. Aquí está el resumen de hoy.</p>
         </div>
         <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200">
           <p className="text-sm text-slate-500 font-medium">Fecha de hoy</p>

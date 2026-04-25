@@ -24,10 +24,12 @@ export function DashboardLayout() {
       { path: '/notifications', label: 'Notificaciones', icon: Bell },
     ];
 
-    if (user?.role === 'Administrador') {
+    const role = user?.rol.name;
+
+    if (role === 'admin') {
       return [
         ...baseItems,
-        { path: '/owners', label: 'Propietarios', icon: Users },
+        { path: '/staff', label: 'Personal', icon: Users },
         { path: '/pets', label: 'Mascotas', icon: Dog },
         { path: '/clinical-history', label: 'Historial Clínico', icon: FileText },
         { path: '/vaccinations', label: 'Vacunas', icon: Syringe },
@@ -36,7 +38,7 @@ export function DashboardLayout() {
       ];
     }
 
-    if (user?.role === 'Veterinario') {
+    if (role === 'veterinario') {
       return [
         ...baseItems,
         { path: '/pets', label: 'Mascotas', icon: Dog },
@@ -45,7 +47,7 @@ export function DashboardLayout() {
       ];
     }
 
-    if (user?.role === 'Recepcionista') {
+    if (role === 'recepcionista') {
       return [
         ...baseItems,
         { path: '/owners', label: 'Propietarios', icon: Users },
@@ -70,8 +72,8 @@ export function DashboardLayout() {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm text-right hidden sm:block">
-            <p className="font-semibold">{user?.name}</p>
-            <p className="text-slate-300 text-xs">{user?.role}</p>
+            <p className="font-semibold">{user?.username}</p>
+            <p className="text-slate-300 text-xs">{user?.rol.description}</p>
           </div>
           <button 
             onClick={logout}

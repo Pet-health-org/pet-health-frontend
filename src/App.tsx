@@ -6,6 +6,7 @@ import { DashboardLayout } from './layouts/DashboardLayout';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { OwnersPage } from './features/owners/pages/OwnersPage';
+import { StaffPage } from './features/owners/pages/StaffPage';
 import { PetsPage } from './features/pets/pages/PetsPage';
 import { AppointmentsPage } from './features/appointments/pages/AppointmentsPage';
 import { ClinicalHistoryPage } from './features/clinical-history/pages/ClinicalHistoryPage';
@@ -28,6 +29,7 @@ function App() {
               
               {/* Feature routes */}
               <Route path="/owners" element={<OwnersPage />} />
+              <Route path="/staff" element={<StaffPage />} />
               <Route path="/pets" element={<PetsPage />} />
               <Route path="/appointments" element={<AppointmentsPage />} />
               <Route path="/clinical-history" element={<ClinicalHistoryPage />} />

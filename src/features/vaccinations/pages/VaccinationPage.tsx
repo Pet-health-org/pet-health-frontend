@@ -5,6 +5,7 @@ import { useNotify } from '../../../context/NotificationContext';
 import { VaccineForm } from '../components/VaccineForm';
 import { AlertCircle, Plus, Syringe, Search, ChevronRight } from 'lucide-react';
 import { Pet } from '../../pets/types';
+import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function VaccinationPage() {
   const { pets } = usePets();
@@ -29,6 +30,7 @@ export function VaccinationPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <DevelopmentAlert moduleName="Vacunación" />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Gestión de Vacunación</h1>

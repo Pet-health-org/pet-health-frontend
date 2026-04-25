@@ -1,32 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Pet } from '../types';
 
-const initialPets: Pet[] = [
-  {
-    id: 'p1',
-    ownerId: '1',
-    name: 'Max',
-    species: 'Perro',
-    breed: 'Golden Retriever',
-    birthDate: '2021-05-10',
-    sex: 'Macho',
-    color: 'Dorado',
-    weight: 30,
-    registrationDate: '2023-01-15T10:00:00Z'
-  },
-  {
-    id: 'p2',
-    ownerId: '2',
-    name: 'Luna',
-    species: 'Gato',
-    breed: 'Siamés',
-    birthDate: '2022-02-20',
-    sex: 'Hembra',
-    color: 'Blanco/Gris',
-    weight: 4.5,
-    registrationDate: '2023-02-20T14:30:00Z'
-  }
-];
+const initialPets: Pet[] = [];
 
 export function usePets() {
   const [pets, setPets] = useState<Pet[]>(initialPets);
