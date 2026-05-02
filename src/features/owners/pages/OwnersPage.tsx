@@ -1,38 +1,44 @@
+import { useState } from 'react';
 import { OwnerList } from '../components/OwnerList';
+import { OwnerForm } from '../components/OwnerForm';
+import { useOwners } from '../hooks/useOwners';
+import { useNotify } from '../../../context/NotificationContext';
 import { Owner } from '../types';
 
-// Mock data for initial visualization
-const mockOwners: Owner[] = [
-  {
-    id: '1',
-    firstName: 'Juan',
-    lastName: 'Pérez',
-    email: 'juan.perez@example.com',
-    phone: '555-0123',
-    address: 'Calle Falsa 123, Ciudad',
-    registrationDate: '2023-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    firstName: 'María',
-    lastName: 'Gómez',
-    email: 'maria.gomez@example.com',
-    phone: '555-0124',
-    address: 'Avenida Siempre Viva 742, Ciudad',
-    registrationDate: '2023-02-20T14:30:00Z'
-  },
-  {
-    id: '3',
-    firstName: 'Carlos',
-    lastName: 'Rodríguez',
-    email: 'carlos.r@example.com',
-    phone: '555-0125',
-    address: 'Boulevard de los Sueños Rotos, Ciudad',
-    registrationDate: '2023-03-05T09:15:00Z'
-  }
-];
-
 export function OwnersPage() {
+  const { owners, isLoading, addOwner, updateOwner, deleteOwner } = useOwners();
+  const { notify } = useNotify();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedOwner, setSelectedOwner] = useState<Owner | undefined>(undefined);
+
+  const handleAdd = () => {
+    setSelectedOwner(undefined);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (owner: Owner) => {
+    setSelectedOwner(owner);
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = (data: Omit<Owner, 'id' | 'registrationDate'>) => {
+    if (selectedOwner) {
+      updateOwner(selectedOwner.id, data);
+      notify('success', 'Actualizado', 'La información del propietario ha sido actualizada.');
+    } else {
+      addOwner(data);
+      notify('success', 'Registrado', 'El nuevo propietario ha sido registrado exitosamente.');
+    }
+    setIsFormOpen(false);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Estás seguro de eliminar este propietario?')) {
+      deleteOwner(id);
+      notify('info', 'Eliminado', 'El registro del propietario ha sido eliminado.');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div>
@@ -40,7 +46,21 @@ export function OwnersPage() {
         <p className="text-slate-500">Gestión de dueños de mascotas registrados en la clínica.</p>
       </div>
 
-      <OwnerList owners={mockOwners} />
+      <OwnerList 
+        owners={owners} 
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      {isFormOpen && (
+        <OwnerForm 
+          owner={selectedOwner}
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleSubmit}
+          isSubmitting={isLoading}
+        />
+      )}
     </div>
   );
 }
