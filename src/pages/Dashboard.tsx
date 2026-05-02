@@ -1,8 +1,32 @@
 import { Calendar, Syringe, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import { getCitas, getVacunas, getInventarios } from '../services/api';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [appointments, setAppointments] = useState(0);
+  const [pendingVaccines, setPendingVaccines] = useState(0);
+  const [lowStock, setLowStock] = useState(0);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const citasRes = await getCitas();
+        setAppointments(citasRes.data.length);
+
+        const vacunasRes = await getVacunas();
+        setPendingVaccines(vacunasRes.data.length);
+
+        const stockRes = await getInventarios();
+        setLowStock(stockRes.data.filter((item: any) => item.stock < 10).length);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -19,34 +43,23 @@ export function Dashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <SummaryCard 
-          title="Citas del Día" 
-          value="12" 
-          subtitle="3 por confirmar"
-          icon={<Calendar className="text-[#0A2540]" size={24} />} 
-          trend="+2 que ayer"
-          trendUp={true}
+        <SummaryCard
+          title="Citas del Día"
+          value={appointments}
+          subtitle="Citas programadas"
+          icon={<Calendar className="text-[#0A2540]" size={24} />}
         />
-        <SummaryCard 
-          title="Vacunas Pendientes" 
-          value="5" 
+        <SummaryCard
+          title="Vacunas Pendientes"
+          value={pendingVaccines}
           subtitle="Para esta semana"
-          icon={<Syringe className="text-[#A8DADC]" size={24} />} 
+          icon={<Syringe className="text-[#A8DADC]" size={24} />}
         />
-        <SummaryCard 
-          title="Stock Bajo" 
-          value="8" 
-          subtitle="Artículos críticos"
-          icon={<AlertTriangle className="text-[#EF4444]" size={24} />} 
-          alert
-        />
-        <SummaryCard 
-          title="Ingresos del Día" 
-          value="$1,240" 
-          subtitle="Estimado"
-          icon={<TrendingUp className="text-emerald-500" size={24} />} 
-          trend="+15%"
-          trendUp={true}
+        <SummaryCard
+          title="Stock Bajo"
+          value={lowStock}
+          subtitle="Productos con bajo stock"
+          icon={<AlertTriangle className="text-[#E63946]" size={24} />}
         />
       </div>
 
@@ -75,7 +88,7 @@ export function Dashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-[#0A2540] mb-4">Alertas de Inventario</h2>
           <div className="space-y-4">
-             {[1, 2].map((i) => (
+            {[1, 2].map((i) => (
               <div key={i} className="flex items-center p-3 bg-red-50 text-red-800 rounded-lg border border-red-100">
                 <AlertTriangle size={20} className="mr-3 text-red-500" />
                 <div className="flex-1">
