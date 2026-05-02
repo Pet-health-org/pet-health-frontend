@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { VaccinationRecord, ALERT_DAYS_THRESHOLD } from '../types';
-import { getVacunas, createVacuna, getVacunasByMascota } from '../../../services/api';
+import { getVacunas, createVacuna, getVacunasByHistoriaClinica } from '../../../services/api';
 
 export function useVaccines() {
   const [records, setRecords] = useState<VaccinationRecord[]>([]);
@@ -46,9 +46,9 @@ export function useVaccines() {
     });
   }, [records]);
 
-  const getPetVaccinations = async (petId: string) => {
+  const getPetVaccinations = async (historiaId: string) => {
     try {
-      const response = await getVacunasByMascota(petId);
+      const response = await getVacunasByHistoriaClinica(historiaId);
       return response.data;
     } catch (error) {
       console.error('Error fetching pet vaccinations:', error);
