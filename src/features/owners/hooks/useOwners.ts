@@ -36,7 +36,7 @@ export function useOwners() {
   const addOwner = useCallback(async (ownerData: Omit<Owner, 'id' | 'registrationDate'>) => {
     setIsLoading(true);
     try {
-      await api.post('/users', {
+      await api.post('/users/register', {
         username: ownerData.firstName,
         email: ownerData.email,
         password: 'Password123!', // Default password for new owners

@@ -30,7 +30,12 @@ export function VaccinationPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert moduleName="Vacunación" />
+      <DevelopmentAlert 
+        moduleName="Vacunación" 
+        variant="warning"
+        title="Módulo en Mantenimiento"
+        customMessage="El sistema de gestión de vacunas está bajo mantenimiento programado para actualizar los esquemas de refuerzo."
+      />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Gestión de Vacunación</h1>

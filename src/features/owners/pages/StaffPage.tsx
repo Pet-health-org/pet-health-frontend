@@ -43,7 +43,7 @@ export function StaffPage() {
     setIsSubmitting(true);
     
     try {
-      await api.post('/users', formData);
+      await api.post('/users/register', formData);
       notify('success', 'Personal Creado', 'La cuenta ha sido creada exitosamente.');
       setIsFormOpen(false);
       setFormData({ username: '', email: '', password: '', rolId: 'veterinario' });

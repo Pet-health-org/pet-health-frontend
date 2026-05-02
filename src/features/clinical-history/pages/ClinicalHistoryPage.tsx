@@ -45,7 +45,12 @@ export function ClinicalHistoryPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert moduleName="Historia Clínica" />
+      <DevelopmentAlert 
+        moduleName="Historia Clínica" 
+        variant="warning"
+        title="Módulo en Mantenimiento"
+        customMessage="Estamos migrando registros históricos. La consulta y registro de atenciones se reanudará en breve."
+      />
       <div>
         <h1 className="text-2xl font-bold text-[#0A2540]">Historial Clínico</h1>
         <p className="text-slate-500">Consulta y registro de atenciones veterinarias.</p>

@@ -27,7 +27,12 @@ export function InventoryPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert moduleName="Inventario" />
+      <DevelopmentAlert 
+        moduleName="Inventario" 
+        variant="warning"
+        title="Módulo en Mantenimiento"
+        customMessage="La gestión de stock está temporalmente deshabilitada para realizar un inventario físico general."
+      />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Gestión de Inventario</h1>

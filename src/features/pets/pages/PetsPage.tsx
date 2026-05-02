@@ -45,7 +45,12 @@ export function PetsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert moduleName="Mascotas" />
+      <DevelopmentAlert 
+        moduleName="Mascotas" 
+        variant="warning"
+        title="Módulo en Mantenimiento"
+        customMessage="Estamos realizando ajustes técnicos en el registro de pacientes. Por el momento, el acceso a esta sección es limitado."
+      />
       <div>
         <h1 className="text-2xl font-bold text-[#0A2540]">Mascotas</h1>
         <p className="text-slate-500">Gestión de pacientes animales registrados en la clínica.</p>
