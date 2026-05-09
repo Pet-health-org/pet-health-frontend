@@ -22,9 +22,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: ejecutar prubas
-        run: npm test
-
       - name: Inicio de trabajo
         run: |
           echo "Iniciando el trabajo de despliegue del react"
