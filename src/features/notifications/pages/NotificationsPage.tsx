@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, CheckCircle, XCircle, Clock, Settings } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Clock, Settings, Save } from 'lucide-react';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 import { getNotificaciones } from '../../../services/notificaciones.service';
 
@@ -14,6 +14,7 @@ interface NotificationLog {
 export function NotificationsPage() {
   const [logs, setLogs] = useState<NotificationLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -49,7 +50,10 @@ export function NotificationsPage() {
           <h1 className="text-2xl font-bold text-[#0A2540]">Centro de Notificaciones</h1>
           <p className="text-slate-500">Gestión de alertas, recordatorios y comunicaciones.</p>
         </div>
-        <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
+        <button 
+          onClick={() => setIsEditorOpen(true)}
+          className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
           <Settings size={18} />
           Configurar Plantillas
         </button>
@@ -103,6 +107,71 @@ export function NotificationsPage() {
           </table>
         </div>
       </div>
+
+      {/* Editor de Plantillas Modal */}
+      {isEditorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="flex items-center gap-3">
+                <Settings className="text-[#0A2540]" size={24} />
+                <h2 className="text-xl font-bold text-[#0A2540]">Configurar Plantillas</h2>
+              </div>
+              <button onClick={() => setIsEditorOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Tipo de Notificación</label>
+                  <select className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A2540]">
+                    <option>Recordatorio de Cita</option>
+                    <option>Aviso de Vacunación</option>
+                    <option>Alerta de Inventario Bajo</option>
+                    <option>Bienvenida de Paciente</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Asunto del Correo / Mensaje</label>
+                  <input type="text" defaultValue="Recordatorio: Próxima cita de [Nombre Mascota]" className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A2540]" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Contenido de la Plantilla</label>
+                  <textarea 
+                    rows={6}
+                    defaultValue={"Hola [Nombre Dueño],\n\nTe recordamos que [Nombre Mascota] tiene una cita programada para el día [Fecha Cita] a las [Hora Cita].\n\nPor favor, contáctanos si necesitas reprogramar.\n\nSaludos,\nEl equipo de PetHealth"}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A2540] font-mono text-sm"
+                  />
+                  <div className="bg-blue-50 text-blue-800 p-3 rounded-lg text-xs flex flex-col gap-1">
+                    <span className="font-semibold">Variables dinámicas disponibles:</span>
+                    <span>[Nombre Dueño], [Nombre Mascota], [Fecha Cita], [Hora Cita], [Nombre Vacuna], [Nombre Producto]</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setIsEditorOpen(false)}
+                className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-white transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => setIsEditorOpen(false)}
+                className="px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-all flex items-center gap-2"
+              >
+                <Save size={18} />
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
