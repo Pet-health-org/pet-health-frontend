@@ -1,16 +1,16 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Dog, 
-  Calendar, 
-  FileText, 
-  Syringe, 
-  Package, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Users,
+  Dog,
+  Calendar,
+  FileText,
+  Syringe,
+  Package,
+  Bell,
   BarChart3,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 
 export function DashboardLayout() {
@@ -24,7 +24,7 @@ export function DashboardLayout() {
       { path: '/notifications', label: 'Notificaciones', icon: Bell },
     ];
 
-    const role = user?.rol.name;
+    const role = user?.rol?.name;
 
     if (role === 'admin') {
       return [
@@ -62,56 +62,95 @@ export function DashboardLayout() {
   const menuItems = getMenuItems();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-[#e0f2fe] text-[#0A2540] h-24 flex items-center justify-between px-6 sticky top-0 z-50 shadow-md border-b border-sky-100">
-        <div className="flex items-center gap-3">
-          {/* We assume logo.png exists in src/assets/styles/logo.png as requested */}
-          <img src="/src/assets/styles/logo.png" alt="PetHealth Logo" className="h-20 w-auto object-contain drop-shadow-md" onError={(e) => e.currentTarget.style.display = 'none'} />
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white flex flex-col border-r border-slate-100 shadow-sm hidden md:flex">
 
+        {/* Logo Header */}
+        <div className="h-20 flex items-center px-6 border-b border-slate-100">
+          <img
+            src="/src/assets/styles/logo2.png"
+            alt="PetHealth Logo"
+            className="h-16 w-auto object-contain drop-shadow-sm"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              console.warn('Logo no encontrado');
+            }}
+          />
+          <h1 className="text-2xl font-bold text-[#0A2540] tracking-tight">PetHealth</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-right hidden sm:block">
-            <p className="font-semibold">{user?.username}</p>
-            <p className="text-slate-600 text-xs font-medium">{user?.rol.description}</p>
-          </div>
-          <button 
-            onClick={logout}
-            className="p-2 hover:bg-sky-100 rounded-full transition-colors"
-            title="Cerrar sesión"
-          >
-            <LogOut size={22} className="text-[#0A2540]" />
-          </button>
-        </div>
-      </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-slate-200 overflow-y-auto hidden md:block flex-shrink-0">
-          <nav className="p-4 space-y-1">
-            {menuItems.map((item) => {
-              const isActive = location.pathname.startsWith(item.path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
-                    isActive 
-                      ? 'bg-[#E0F2F1] text-[#0A2540] font-medium shadow-sm border border-[#A8DADC]' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A2540]'
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {menuItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${isActive
+                  ? 'bg-[#E0F2F1] text-[#0A2540] font-semibold shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A2540]'
                   }`}
-                >
-                  <Icon size={18} className={isActive ? 'text-[#0A2540]' : 'text-slate-400'} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
+              >
+                <Icon
+                  size={20}
+                  className={isActive ? 'text-[#0A2540]' : 'text-slate-400 group-hover:text-slate-500'}
+                />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+        {/* Footer opcional */}
+        <div className="p-4 border-t border-slate-100 mt-auto">
+          <div className="text-xs text-slate-400 px-4">
+            {new Date().getFullYear()} © PetHealth
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="bg-white h-20 flex items-center justify-between px-6 md:px-8 border-b border-slate-100 sticky top-0 z-50 shadow-sm">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-slate-700 hidden md:block">
+              Panel de Control
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {/* Usuario */}
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="font-semibold text-[#0A2540]">{user?.username}</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  {user?.rol?.description}
+                </p>
+              </div>
+
+              <div className="w-9 h-9 bg-gradient-to-br from-[#0A2540] to-[#1E3A8A] rounded-full flex items-center justify-center text-white font-medium shadow">
+                {user?.username?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            </div>
+
+            {/* Logout */}
+            <button
+              onClick={logout}
+              className="p-2.5 hover:bg-slate-100 rounded-xl transition-colors text-slate-600 hover:text-red-600"
+              title="Cerrar sesión"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
+        </header>
+
+        {/* Contenido */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
           <Outlet />
         </main>
       </div>
