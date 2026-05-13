@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../../../services/api';
+import { getVeterinarios } from '../../../services/veterinarios.service';
 import { AppointmentCalendar } from '../components/AppointmentCalendar';
 import { AppointmentForm } from '../components/AppointmentForm';
 import { useAppointments } from '../hooks/useAppointments';
@@ -24,7 +24,7 @@ export function AppointmentsPage() {
   useEffect(() => {
     const fetchVets = async () => {
       try {
-        const res = await api.get('/veterinarios');
+        const res = await getVeterinarios();
         setVeterinarians(res.data);
       } catch (error) {
         console.error('Error fetching veterinarians:', error);

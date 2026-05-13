@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Consultation, VitalSigns } from '../types';
 import { Species, SPECIES_VITAL_RANGES } from '../../pets/types';
-import { getHistoriasClinicas, createHistoriaClinica, getHistoriasClinicasByMascota } from '../../../services/api';
+import { getHistoriasClinicas, createHistoriaClinica, getHistoriasClinicasByMascota } from '../../../services/historias-clinicas.service';
 
 export function useConsultations() {
   const [consultations, setConsultations] = useState<Consultation[]>([]);

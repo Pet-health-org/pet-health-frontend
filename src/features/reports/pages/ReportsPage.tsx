@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, PieChart, TrendingUp, Download } from 'lucide-react';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
-import { getMascotas, getHistoriasClinicas, getVacunas } from '../../../services/api';
+import { getMascotas } from '../../../services/mascotas.service';
+import { getHistoriasClinicas } from '../../../services/historias-clinicas.service';
+import { getVacunas } from '../../../services/vacunas.service';
 
 export function ReportsPage() {
   const [stats, setStats] = useState({
@@ -69,7 +71,7 @@ export function ReportsPage() {
           totalPatients: pets.length
         });
       } catch (error) {
-        console.error('Error calculating stats:', error);
+        console.error('Error fetching stats:', error);
       } finally {
         setIsLoading(false);
       }

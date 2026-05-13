@@ -1,7 +1,9 @@
 import { Calendar, Syringe, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
-import { getCitas, getVacunas, getInventarios } from '../services/api';
+import { getCitas } from '../services/citas.service';
+import { getVacunas } from '../services/vacunas.service';
+import { getInventarios } from '../services/inventario.service';
 import { DevelopmentAlert } from '../components/DevelopmentAlert';
 
 export function Dashboard() {

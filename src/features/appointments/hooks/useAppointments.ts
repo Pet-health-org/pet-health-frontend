@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Appointment } from '../types';
-import { getCitas, createCita, updateCita as apiUpdateCita, deleteCita as apiDeleteCita } from '../../../services/api';
+import { getCitas, createCita, updateCita as apiUpdateCita, deleteCita as apiDeleteCita } from '../../../services/citas.service';
 
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);

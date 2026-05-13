@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotificationContext';
-import api from '../services/api';
+import { login as authLogin } from '../services/auth.service';
 import logo from '../assets/styles/logo.png';
 
 type ModalType = 'login' | 'register' | null;
@@ -62,7 +62,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     setIsSubmitting(true);
     
     try {
-      const response = await api.post('/auth/login', { username, password });
+      const response = await authLogin({ username, password });
       const { access_token } = response.data;
       
       await login(access_token);
