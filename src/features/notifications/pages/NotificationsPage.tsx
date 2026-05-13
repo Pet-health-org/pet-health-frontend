@@ -38,7 +38,12 @@ export function NotificationsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert moduleName="Notificaciones" />
+      <DevelopmentAlert 
+        moduleName="Notificaciones" 
+        variant="warning"
+        title="Módulo en Mantenimiento"
+        customMessage="El centro de notificaciones está siendo optimizado para mejorar la entrega de recordatorios vía email."
+      />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Centro de Notificaciones</h1>

@@ -29,22 +29,15 @@ export function Home() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
           <button 
             onClick={() => setActiveModal('login')}
-            className="px-8 py-3 bg-[#0A2540] text-white rounded-lg font-medium shadow-lg shadow-[#0A2540]/20 hover:bg-[#113255] hover:-translate-y-0.5 transition-all duration-200"
+            className="px-12 py-4 bg-[#0A2540] text-white rounded-xl font-bold shadow-xl shadow-[#0A2540]/20 hover:bg-[#113255] hover:-translate-y-1 transition-all duration-200 text-lg"
           >
-            Iniciar Sesión
-          </button>
-          <button 
-            onClick={() => setActiveModal('register')}
-            className="px-8 py-3 bg-white text-[#0A2540] rounded-lg font-medium shadow-sm border border-slate-200 hover:bg-slate-50 hover:-translate-y-0.5 transition-all duration-200"
-          >
-            Crear Cuenta
+            Entrar al Sistema
           </button>
         </div>
       </div>
 
       {/* Modals */}
       {activeModal === 'login' && <LoginModal onClose={() => setActiveModal(null)} />}
-      {activeModal === 'register' && <RegisterModal onClose={() => setActiveModal(null)} />}
     </div>
   );
 }
@@ -62,7 +55,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     
     if (failedAttempts >= 3) {
-      notify('error', 'Acceso Bloqueado', 'Has superado el número de intentos permitidos. Por seguridad, el acceso ha sido bloqueado temporalmente.');
+      notify('error', 'Acceso Bloqueado', 'Has superado el número de intentos permitidos.');
       return;
     }
 
@@ -72,7 +65,6 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       const response = await api.post('/auth/login', { username, password });
       const { access_token } = response.data;
       
-      // The login function now handles profile fetching
       await login(access_token);
       
       notify('success', 'Bienvenido', 'Has iniciado sesión correctamente.');
@@ -82,12 +74,8 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       
-      if (newAttempts >= 3) {
-        notify('error', 'Acceso Bloqueado', 'Has fallado 3 intentos. Acceso bloqueado.');
-      } else {
-        const message = error.response?.data?.message || 'Credenciales incorrectas.';
-        notify('error', 'Error de acceso', `${message} Intento ${newAttempts}/3`);
-      }
+      const message = error.response?.data?.message || 'Credenciales incorrectas.';
+      notify('error', 'Error de acceso', `${message} Intento ${newAttempts}/3`);
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +88,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-[#0A2540]">Bienvenido de nuevo</h2>
+            <h2 className="text-2xl font-bold text-[#0A2540]">Acceso Personal</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
           </div>
           
@@ -113,14 +101,14 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre de Usuario</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
               <input 
                 type="text" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLocked}
                 className={`w-full px-4 py-2 border ${isLocked ? 'bg-slate-50 border-slate-200' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all`}
-                placeholder="Ej: admin"
+                placeholder="Nombre de usuario"
                 required 
               />
             </div>
@@ -140,7 +128,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             <button 
               type="submit"
               disabled={isSubmitting || isLocked}
-              className={`w-full py-3 mt-4 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center ${isSubmitting || isLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`w-full py-4 mt-4 bg-[#0A2540] text-white rounded-xl font-bold hover:bg-[#113255] transition-all flex items-center justify-center shadow-lg shadow-[#0A2540]/20 ${isSubmitting || isLocked ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
             >
               {isSubmitting ? (
                 <>
@@ -148,112 +136,9 @@ function LoginModal({ onClose }: { onClose: () => void }) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Iniciando sesión...
+                  Verificando...
                 </>
-              ) : isLocked ? 'Cuenta Bloqueada' : 'Entrar al sistema'}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RegisterModal({ onClose }: { onClose: () => void }) {
-  const { notify } = useNotify();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Mapping name to username for the backend
-      const username = name.toLowerCase().replace(/\s+/g, '_');
-      
-      await api.post('/users', {
-        username,
-        email,
-        password,
-        rolId: 'propietario', // Default role for public registration
-        nombreCompleto: name
-      });
-
-      notify('success', 'Registro Exitoso', 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.');
-      onClose();
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      const message = error.response?.data?.message || 'Error al crear la cuenta. Es posible que el registro público esté restringido.';
-      notify('error', 'Error de registro', message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-[#0A2540]">Crear Cuenta</h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
-          </div>
-          
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm flex items-start gap-3">
-            <span className="text-lg leading-none mt-0.5">🚧</span>
-            <div>
-              <p className="font-bold mb-1">Registro Público en Desarrollo</p>
-              <p className="text-xs text-amber-700">
-                El sistema de registro público actualmente <strong>no está en funcionamiento</strong>. 
-                Debido a configuraciones de seguridad en el servidor, solo el Administrador puede crear cuentas nuevas desde su panel interno.
-              </p>
-            </div>
-          </div>
-          
-          <form className="space-y-4 opacity-50 pointer-events-none" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-              <input 
-                type="text" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 outline-none" 
-                placeholder="Ej: Juan Pérez"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 outline-none" 
-                placeholder="juan@correo.com"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 outline-none" 
-                placeholder="••••••••"
-                disabled
-              />
-            </div>
-            
-            <button 
-              type="button" 
-              disabled
-              className="w-full py-3 mt-4 bg-slate-300 text-slate-500 rounded-lg font-medium flex items-center justify-center cursor-not-allowed"
-            >
-              Funcionalidad Deshabilitada
+              ) : isLocked ? 'Cuenta Bloqueada' : 'Entrar al Sistema'}
             </button>
           </form>
         </div>

@@ -33,7 +33,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only logout if we had a token and got a 401
     const token = localStorage.getItem('pethealth_token');
     if (error.response && error.response.status === 401 && token) {
       localStorage.removeItem('pethealth_token');
@@ -43,5 +42,10 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Additional functions for backend interaction
+export const getVacunas = async () => api.get('/vacunas');
+export const createVacuna = async (data) => api.post('/vacunas', data);
+export const getVacunasByHistoriaClinica = async (id) => api.get(`/historias-clinicas/${id}/vacunas`);
 
 export default api;

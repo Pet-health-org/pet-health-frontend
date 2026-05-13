@@ -52,9 +52,9 @@ export function AppointmentsPage() {
     <div className="space-y-6 animate-in fade-in duration-300">
       <DevelopmentAlert 
         moduleName="Citas" 
-        title="Módulo Funcional con Ajustes Pendientes"
-        customMessage="La asignación de veterinarios ya está vinculada a la base de datos real. Próximamente se integrarán los endpoints para guardar las citas programadas de forma persistente."
         variant="info"
+        title="Agenda Médica Sincronizada"
+        customMessage="El calendario de citas está totalmente integrado con la disponibilidad de los veterinarios y los registros de pacientes."
       />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
