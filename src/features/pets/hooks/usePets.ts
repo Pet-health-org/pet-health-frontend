@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Pet } from '../types';
-import { getMascotas, createMascota, updateMascota as apiUpdateMascota, deleteMascota as apiDeleteMascota, getMascotasByDueno } from '../../../services/api';
+import { getMascotas, createMascota, updateMascota as apiUpdateMascota, deleteMascota as apiDeleteMascota, getMascotasByDueno } from '../../../services/mascotas.service';
 
 export function usePets() {
   const [pets, setPets] = useState<Pet[]>([]);

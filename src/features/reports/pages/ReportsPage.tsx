@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, PieChart, TrendingUp, Download, Calendar } from 'lucide-react';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
-import { getReportes } from '../../../services/api';
+import { getReportes } from '../../../services/reportes.service';
 
 export function ReportsPage() {
   const [reportData, setReportData] = useState<any>(null);

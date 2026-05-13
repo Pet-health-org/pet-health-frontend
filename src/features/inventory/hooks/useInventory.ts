@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { InventoryItem, InventoryMovement } from '../types';
-import { getInventarios, createInventario, updateInventario as apiUpdateInventario, deleteInventario as apiDeleteInventario } from '../../../services/api';
+import { getInventarios, createInventario, updateInventario as apiUpdateInventario, deleteInventario as apiDeleteInventario } from '../../../services/inventario.service';
 
 export function useInventory() {
   const [items, setItems] = useState<InventoryItem[]>([]);
