@@ -43,9 +43,4 @@ api.interceptors.response.use(
   }
 );
 
-// Additional functions for backend interaction
-export const getVacunas = async () => api.get('/vacunas');
-export const createVacuna = async (data) => api.post('/vacunas', data);
-export const getVacunasByHistoriaClinica = async (id) => api.get(`/historias-clinicas/${id}/vacunas`);
-
 export default api;
