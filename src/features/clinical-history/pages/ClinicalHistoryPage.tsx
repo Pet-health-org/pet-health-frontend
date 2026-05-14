@@ -3,15 +3,16 @@ import { ClinicalHistoryView } from '../components/ClinicalHistoryView';
 import { ConsultationForm } from '../components/ConsultationForm';
 import { useConsultations } from '../hooks/useConsultations';
 import { usePets } from '../../pets/hooks/usePets';
+import { useVaccines } from '../../vaccinations/hooks/useVaccines';
 import { useNotify } from '../../../context/NotificationContext';
 import { Search, FileSearch } from 'lucide-react';
 import { Pet } from '../../pets/types';
 import { Consultation } from '../types';
-import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function ClinicalHistoryPage() {
   const { pets } = usePets();
   const { getPetHistory, addConsultation, isLoading } = useConsultations();
+  const { records: vaccineRecords } = useVaccines();
   const { notify } = useNotify();
   
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
@@ -43,17 +44,15 @@ export function ClinicalHistoryPage() {
     }
   };
 
+  const petVaccines = selectedPet ? vaccineRecords.filter(v => v.petId === selectedPet.id) : [];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert 
-        moduleName="Historia Clínica" 
-        variant="warning"
-        title="Módulo en Mantenimiento"
-        customMessage="Estamos migrando registros históricos. La consulta y registro de atenciones se reanudará en breve."
-      />
-      <div>
-        <h1 className="text-2xl font-bold text-[#0A2540]">Historial Clínico</h1>
-        <p className="text-slate-500">Consulta y registro de atenciones veterinarias.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#0A2540]">Historial Clínico</h1>
+          <p className="text-slate-500">Consulta y registro de atenciones veterinarias.</p>
+        </div>
       </div>
 
       {!selectedPet ? (
@@ -115,6 +114,7 @@ export function ClinicalHistoryPage() {
           <ClinicalHistoryView 
             pet={selectedPet}
             history={getPetHistory(selectedPet.id)}
+            vaccines={petVaccines}
             onNewConsultation={handleNewConsultation}
           />
         </div>
