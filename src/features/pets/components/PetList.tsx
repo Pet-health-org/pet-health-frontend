@@ -19,7 +19,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
     return owner ? `${owner.firstName} ${owner.lastName}` : 'Desconocido';
   };
 
-  const getSpeciesIcon = (species: Species) => {
+  const getSpeciesIcon = (species: string) => {
     switch (species) {
       case 'Perro': return <Dog size={18} className="text-blue-500" />;
       case 'Gato': return <Cat size={18} className="text-purple-500" />;

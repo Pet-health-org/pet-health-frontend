@@ -30,7 +30,7 @@ export function ConsultationForm({ pet, onClose, onSubmit, isSubmitting }: Consu
   });
 
   const [vitalsStatus, setVitalsStatus] = useState<Record<string, boolean>>({});
-  const ranges = SPECIES_VITAL_RANGES[pet.species];
+  const ranges = SPECIES_VITAL_RANGES[pet.species as keyof typeof SPECIES_VITAL_RANGES] || SPECIES_VITAL_RANGES['Otros'];
 
   useEffect(() => {
     const status = {

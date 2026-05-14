@@ -6,8 +6,10 @@ import { DashboardLayout } from './layouts/DashboardLayout';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { OwnersPage } from './features/owners/pages/OwnersPage';
+import { OwnerProfilePage } from './features/owners/pages/OwnerProfilePage';
 import { StaffPage } from './features/owners/pages/StaffPage';
 import { PetsPage } from './features/pets/pages/PetsPage';
+import { PetProfilePage } from './features/pets/pages/PetProfilePage';
 import { AppointmentsPage } from './features/appointments/pages/AppointmentsPage';
 import { ClinicalHistoryPage } from './features/clinical-history/pages/ClinicalHistoryPage';
 import { VaccinationPage } from './features/vaccinations/pages/VaccinationPage';
@@ -29,8 +31,10 @@ function App() {
               
               {/* Feature routes */}
               <Route path="/owners" element={<OwnersPage />} />
+              <Route path="/owners/:id" element={<OwnerProfilePage />} />
               <Route path="/staff" element={<StaffPage />} />
               <Route path="/pets" element={<PetsPage />} />
+              <Route path="/pets/:id" element={<PetProfilePage />} />
               <Route path="/appointments" element={<AppointmentsPage />} />
               <Route path="/clinical-history" element={<ClinicalHistoryPage />} />
               <Route path="/vaccinations" element={<VaccinationPage />} />

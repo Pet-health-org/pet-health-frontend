@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import api from '../../../services/api';
+import { getPropietarios, createPropietario, updatePropietario, deletePropietario } from '../../../services/propietarios.service';
 import { Owner } from '../types';
 
 export function useOwners() {
@@ -9,7 +9,7 @@ export function useOwners() {
   const fetchOwners = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/propietarios');
+      const response = await getPropietarios();
       // Map backend users to frontend owners
       const mappedOwners: Owner[] = response.data.map((user: any) => ({
         id: user.id,
@@ -36,7 +36,7 @@ export function useOwners() {
   const addOwner = useCallback(async (ownerData: Omit<Owner, 'id' | 'registrationDate'>) => {
     setIsLoading(true);
     try {
-      await api.post('/users/register', {
+      await createPropietario({
         username: ownerData.firstName,
         email: ownerData.email,
         password: 'Password123!', // Default password for new owners
@@ -54,7 +54,7 @@ export function useOwners() {
   const updateOwner = useCallback(async (id: string, ownerData: Partial<Owner>) => {
     setIsLoading(true);
     try {
-      await api.patch(`/users/${id}`, {
+      await updatePropietario(id, {
         username: ownerData.firstName,
         email: ownerData.email,
       });
@@ -70,7 +70,7 @@ export function useOwners() {
   const deleteOwner = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      await api.delete(`/users/${id}`);
+      await deletePropietario(id);
       setOwners(prev => prev.filter(o => o.id !== id));
     } catch (error) {
       console.error('Error deleting owner:', error);

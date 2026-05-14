@@ -1,55 +1,130 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Pet, Species } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Search } from 'lucide-react';
+import { Pet } from '../types';
 import { Owner } from '../../owners/types';
+import { getEspecies } from '../../../services/especies.service';
+import { getRazasByEspecie } from '../../../services/razas.service';
 
 interface PetFormProps {
   pet?: Pet;
   owners: Owner[];
   onClose: () => void;
-  onSubmit: (data: Omit<Pet, 'id' | 'registrationDate'>) => void;
+  onSubmit: (data: any) => void;
   isSubmitting?: boolean;
   preselectedOwnerId?: string;
 }
 
 export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselectedOwnerId }: PetFormProps) {
+  const [especies, setEspecies] = useState<any[]>([]);
+  const [razas, setRazas] = useState<any[]>([]);
+
   const [formData, setFormData] = useState({
+    speciesId: '',
+    breedId: '',
     ownerId: preselectedOwnerId || '',
     name: '',
-    species: 'Perro' as Species,
-    breed: '',
     birthDate: '',
-    sex: 'Macho' as 'Macho' | 'Hembra',
+    sex: 'Macho',
     color: '',
-    weight: 0,
+    weight: '' as number | string,
     observations: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Owner autocomplete state
+  const [ownerSearch, setOwnerSearch] = useState('');
+  const [ownerResults, setOwnerResults] = useState<Owner[]>([]);
+  const [isOwnerDropdownOpen, setIsOwnerDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch Especies
+  useEffect(() => {
+    getEspecies().then(res => setEspecies(res.data)).catch(console.error);
+  }, []);
+
+  // Fetch Razas based on species
+  useEffect(() => {
+    if (formData.speciesId) {
+      getRazasByEspecie(formData.speciesId)
+         .then(res => setRazas(res.data))
+         .catch(console.error);
+    } else {
+      setRazas([]);
+    }
+  }, [formData.speciesId]);
+
+  // Load Initial Data
   useEffect(() => {
     if (pet) {
       setFormData({
+        speciesId: pet.speciesId || '',
+        breedId: pet.breedId || '',
         ownerId: pet.ownerId,
         name: pet.name,
-        species: pet.species,
-        breed: pet.breed,
-        birthDate: pet.birthDate.split('T')[0],
+        birthDate: pet.birthDate ? pet.birthDate.split('T')[0] : '',
         sex: pet.sex,
         color: pet.color,
         weight: pet.weight,
         observations: pet.observations || ''
       });
+      const owner = owners.find(o => o.id === pet.ownerId);
+      if (owner) setOwnerSearch(`${owner.firstName} ${owner.lastName}`);
     }
-  }, [pet]);
+  }, [pet, owners]);
+
+  // Owner search logic
+  useEffect(() => {
+    if (!ownerSearch || ownerSearch.length < 2) {
+      setOwnerResults([]);
+      setIsOwnerDropdownOpen(false);
+      return;
+    }
+    const exactMatch = owners.find(o => `${o.firstName} ${o.lastName}` === ownerSearch);
+    if (exactMatch && formData.ownerId === exactMatch.id) {
+       setOwnerResults([]);
+       setIsOwnerDropdownOpen(false);
+       return;
+    }
+
+    const filtered = owners.filter(o => 
+      `${o.firstName} ${o.lastName}`.toLowerCase().includes(ownerSearch.toLowerCase()) || 
+      o.identification.includes(ownerSearch)
+    );
+    setOwnerResults(filtered);
+    setIsOwnerDropdownOpen(true);
+  }, [ownerSearch, owners, formData.ownerId]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOwnerDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownRef]);
+
+  const selectOwner = (owner: Owner) => {
+    setOwnerSearch(`${owner.firstName} ${owner.lastName}`);
+    setFormData(prev => ({ ...prev, ownerId: owner.id }));
+    setIsOwnerDropdownOpen(false);
+    setErrors(prev => {
+      const e = {...prev};
+      delete e.ownerId;
+      return e;
+    });
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
+    if (!formData.speciesId) newErrors.speciesId = 'La especie es obligatoria';
+    if (!formData.breedId) newErrors.breedId = 'La raza es obligatoria';
     if (!formData.ownerId) newErrors.ownerId = 'Debe seleccionar un propietario';
     if (!formData.name) newErrors.name = 'El nombre es obligatorio';
-    if (!formData.species) newErrors.species = 'La especie es obligatoria';
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
-    if (formData.weight <= 0) newErrors.weight = 'El peso debe ser un valor numérico positivo';
+    const weightNum = Number(formData.weight);
+    if (isNaN(weightNum) || weightNum <= 0) newErrors.weight = 'El peso debe ser un valor numérico positivo';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -58,7 +133,10 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit(formData);
+      onSubmit({
+        ...formData,
+        weight: Number(formData.weight)
+      });
     }
   };
 
@@ -74,24 +152,75 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
             <div className="md:col-span-2 space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Propietario *</label>
+              <label className="text-sm font-semibold text-slate-700">Especie *</label>
               <select 
-                className={`w-full px-4 py-2 border ${errors.ownerId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.ownerId}
-                onChange={(e) => setFormData({...formData, ownerId: e.target.value})}
-                disabled={!!preselectedOwnerId}
+                className={`w-full px-4 py-2 border ${errors.speciesId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
+                value={formData.speciesId}
+                onChange={(e) => {
+                  setFormData({...formData, speciesId: e.target.value, breedId: ''});
+                }}
               >
-                <option value="">Seleccione un propietario...</option>
-                {owners.map(owner => (
-                  <option key={owner.id} value={owner.id}>
-                    {owner.firstName} {owner.lastName} ({owner.identification})
-                  </option>
+                <option value="">Seleccione una especie...</option>
+                {especies.map(e => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
                 ))}
               </select>
+              {errors.speciesId && <p className="text-xs text-red-500">{errors.speciesId}</p>}
+            </div>
+
+            <div className="md:col-span-2 space-y-1">
+              <label className="text-sm font-semibold text-slate-700">Raza *</label>
+              <select 
+                className={`w-full px-4 py-2 border ${errors.breedId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
+                value={formData.breedId}
+                onChange={(e) => setFormData({...formData, breedId: e.target.value})}
+                disabled={!formData.speciesId || razas.length === 0}
+              >
+                <option value="">Seleccione una raza...</option>
+                {razas.map(r => (
+                  <option key={r.id} value={r.id}>{r.nombre}</option>
+                ))}
+              </select>
+              {errors.breedId && <p className="text-xs text-red-500">{errors.breedId}</p>}
+            </div>
+
+            <div className="md:col-span-2 space-y-1 relative" ref={dropdownRef}>
+              <label className="text-sm font-semibold text-slate-700">Propietario *</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text"
+                  placeholder="Buscar propietario por nombre o documento..."
+                  className={`w-full pl-10 pr-4 py-2 border ${errors.ownerId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
+                  value={ownerSearch}
+                  onChange={(e) => {
+                    setOwnerSearch(e.target.value);
+                    if (formData.ownerId) setFormData({...formData, ownerId: ''});
+                  }}
+                  disabled={!!preselectedOwnerId}
+                  onFocus={() => { if (ownerResults.length > 0) setIsOwnerDropdownOpen(true); }}
+                />
+              </div>
               {errors.ownerId && <p className="text-xs text-red-500">{errors.ownerId}</p>}
+              
+              {isOwnerDropdownOpen && ownerResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {ownerResults.map(owner => (
+                    <div 
+                      key={owner.id} 
+                      className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                      onClick={() => selectOwner(owner)}
+                    >
+                      <div className="font-medium text-slate-800">{owner.firstName} {owner.lastName}</div>
+                      <div className="text-xs text-slate-500">ID: {owner.identification}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -103,31 +232,6 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
               {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Especie *</label>
-              <select 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all"
-                value={formData.species}
-                onChange={(e) => setFormData({...formData, species: e.target.value as Species})}
-              >
-                <option value="Perro">Perro</option>
-                <option value="Gato">Gato</option>
-                <option value="Ave">Ave</option>
-                <option value="Otros">Otros</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Raza</label>
-              <input 
-                type="text" 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all"
-                value={formData.breed}
-                onChange={(e) => setFormData({...formData, breed: e.target.value})}
-                placeholder={formData.species === 'Perro' ? 'Ej: Golden Retriever' : 'Raza o variedad'}
-              />
             </div>
 
             <div className="space-y-1">
@@ -184,6 +288,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
               <input 
                 type="number" 
                 step="0.1"
+                min="0.1"
                 className={`w-full px-4 py-2 border ${errors.weight ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.weight}
                 onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value)})}
