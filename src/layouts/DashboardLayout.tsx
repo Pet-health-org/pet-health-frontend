@@ -12,6 +12,7 @@ import {
   BarChart3,
   LogOut,
 } from 'lucide-react';
+import { OwnerSearch } from '../features/owners/components/OwnerSearch';
 
 export function DashboardLayout() {
   const { user, logout } = useAuth();
@@ -117,13 +118,19 @@ export function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="bg-white h-20 flex items-center justify-between px-6 md:px-8 border-b border-slate-100 sticky top-0 z-50 shadow-sm">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-slate-700 hidden md:block">
+          <div className="flex items-center gap-4 flex-1">
+            <h2 className="text-lg font-semibold text-slate-700 hidden md:block whitespace-nowrap mr-4">
               Panel de Control
             </h2>
+            
+            {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') && (
+              <div className="flex-1 max-w-lg hidden sm:block">
+                <OwnerSearch />
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 ml-4">
             {/* Usuario */}
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">

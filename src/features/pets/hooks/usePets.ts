@@ -10,7 +10,21 @@ export function usePets() {
     setIsLoading(true);
     try {
       const response = await getMascotas();
-      setPets(response.data);
+      const mappedPets: Pet[] = response.data.map((m: any) => ({
+        id: m.id,
+        ownerId: m.propietarioId,
+        name: m.nombre,
+        species: m.raza?.especie?.nombre || 'Desconocido',
+        breed: m.raza?.nombre || 'Desconocido',
+        speciesId: m.raza?.especie?.id || '',
+        breedId: m.razaId || '',
+        birthDate: new Date(new Date().setFullYear(new Date().getFullYear() - (m.edad || 0))).toISOString(),
+        sex: m.sexo,
+        color: m.color,
+        weight: m.peso,
+        observations: ''
+      }));
+      setPets(mappedPets);
     } catch (error) {
       console.error('Error fetching pets:', error);
     } finally {
@@ -22,11 +36,22 @@ export function usePets() {
     fetchPets();
   }, [fetchPets]);
 
-  const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'registrationDate'>) => {
+  const addPet = useCallback(async (petData: any) => {
     setIsLoading(true);
     try {
-      await createMascota(petData);
+      const edad = petData.birthDate ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) : 0;
+      const payload = {
+        propietarioId: petData.ownerId,
+        razaId: petData.breedId,
+        nombre: petData.name,
+        edad: edad,
+        sexo: petData.sex,
+        peso: petData.weight,
+        color: petData.color || ''
+      };
+      const response = await createMascota(payload);
       await fetchPets();
+      return response.data;
     } catch (error) {
       console.error('Error adding pet:', error);
       throw error;
@@ -35,10 +60,20 @@ export function usePets() {
     }
   }, [fetchPets]);
 
-  const updatePet = useCallback(async (id: string, petData: Partial<Pet>) => {
+  const updatePet = useCallback(async (id: string, petData: any) => {
     setIsLoading(true);
     try {
-      await apiUpdateMascota(id, petData);
+      const edad = petData.birthDate ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) : 0;
+      const payload = {
+        propietarioId: petData.ownerId,
+        razaId: petData.breedId,
+        nombre: petData.name,
+        edad: edad,
+        sexo: petData.sex,
+        peso: petData.weight,
+        color: petData.color || ''
+      };
+      await apiUpdateMascota(id, payload);
       await fetchPets();
     } catch (error) {
       console.error('Error updating pet:', error);

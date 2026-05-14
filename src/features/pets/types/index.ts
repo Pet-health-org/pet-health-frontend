@@ -4,10 +4,12 @@ export interface Pet {
   id: string;
   ownerId: string;
   name: string;
-  species: Species;
+  species: Species | string;
   breed: string;
+  speciesId?: string;
+  breedId?: string;
   birthDate: string;
-  sex: 'Macho' | 'Hembra';
+  sex: 'Macho' | 'Hembra' | string;
   color: string;
   weight: number;
   observations?: string;

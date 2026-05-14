@@ -4,6 +4,7 @@ import { OwnerForm } from '../components/OwnerForm';
 import { useOwners } from '../hooks/useOwners';
 import { useNotify } from '../../../context/NotificationContext';
 import { Owner } from '../types';
+import Swal from 'sweetalert2';
 
 export function OwnersPage() {
   const { owners, isLoading, addOwner, updateOwner, deleteOwner } = useOwners();
@@ -21,21 +22,65 @@ export function OwnersPage() {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (data: Omit<Owner, 'id' | 'registrationDate'>) => {
-    if (selectedOwner) {
-      updateOwner(selectedOwner.id, data);
-      notify('success', 'Actualizado', 'La información del propietario ha sido actualizada.');
-    } else {
-      addOwner(data);
-      notify('success', 'Registrado', 'El nuevo propietario ha sido registrado exitosamente.');
+  const handleSubmit = async (data: Omit<Owner, 'id' | 'registrationDate'>) => {
+    try {
+      if (selectedOwner) {
+        await updateOwner(selectedOwner.id, data);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Actualizado!',
+          text: 'La información del propietario ha sido actualizada.',
+          confirmButtonColor: '#0A2540'
+        });
+      } else {
+        await addOwner(data);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Registrado!',
+          text: 'El nuevo propietario ha sido registrado exitosamente.',
+          confirmButtonColor: '#0A2540'
+        });
+      }
+      setIsFormOpen(false);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al procesar la solicitud.',
+        confirmButtonColor: '#0A2540'
+      });
     }
-    setIsFormOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este propietario?')) {
-      deleteOwner(id);
-      notify('info', 'Eliminado', 'El registro del propietario ha sido eliminado.');
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esto.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteOwner(id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'El registro del propietario ha sido eliminado.',
+          confirmButtonColor: '#0A2540'
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un problema al eliminar el propietario.',
+          confirmButtonColor: '#0A2540'
+        });
+      }
     }
   };
 

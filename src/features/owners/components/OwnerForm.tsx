@@ -101,8 +101,11 @@ export function OwnerForm({ owner, onClose, onSubmit, isSubmitting }: OwnerFormP
                 type="text" 
                 className={`w-full px-4 py-2 border ${errors.identification ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.identification}
-                onChange={(e) => setFormData({...formData, identification: e.target.value})}
-                placeholder="C.C., T.I., etc."
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setFormData({...formData, identification: value});
+                }}
+                placeholder="Solo números"
               />
               {errors.identification && <p className="text-xs text-red-500">{errors.identification}</p>}
             </div>
@@ -124,7 +127,19 @@ export function OwnerForm({ owner, onClose, onSubmit, isSubmitting }: OwnerFormP
                 type="email" 
                 className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({...formData, email: value});
+                  if (value && !/\S+@\S+\.\S+/.test(value)) {
+                    setErrors(prev => ({...prev, email: 'El formato del correo no es válido'}));
+                  } else {
+                    setErrors(prev => {
+                      const newErrors = {...prev};
+                      delete newErrors.email;
+                      return newErrors;
+                    });
+                  }
+                }}
               />
               {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>

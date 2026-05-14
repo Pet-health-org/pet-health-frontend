@@ -6,11 +6,13 @@ import { useOwners } from '../../owners/hooks/useOwners';
 import { useNotify } from '../../../context/NotificationContext';
 import { Pet } from '../types';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
+import { useNavigate } from 'react-router-dom';
 
 export function PetsPage() {
   const { pets, isLoading: isPetsLoading, addPet, updatePet, deletePet } = usePets();
   const { owners } = useOwners();
   const { notify } = useNotify();
+  const navigate = useNavigate();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState<Pet | undefined>(undefined);
@@ -25,15 +27,23 @@ export function PetsPage() {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (data: Omit<Pet, 'id' | 'registrationDate'>) => {
-    if (selectedPet) {
-      updatePet(selectedPet.id, data);
-      notify('success', 'Actualizado', 'La información de la mascota ha sido actualizada.');
-    } else {
-      addPet(data);
-      notify('success', 'Registrada', 'La nueva mascota ha sido registrada exitosamente.');
+  const handleSubmit = async (data: Omit<Pet, 'id' | 'registrationDate'>) => {
+    try {
+      if (selectedPet) {
+        await updatePet(selectedPet.id, data);
+        notify('success', 'Actualizado', 'La información de la mascota ha sido actualizada.');
+        setIsFormOpen(false);
+      } else {
+        const newPet = await addPet(data);
+        notify('success', 'Registrada', 'La nueva mascota ha sido registrada exitosamente.');
+        setIsFormOpen(false);
+        if (newPet && newPet.id) {
+          navigate(`/pets/${newPet.id}`);
+        }
+      }
+    } catch (e) {
+      notify('error', 'Error', 'Ocurrió un error al procesar el registro de la mascota.');
     }
-    setIsFormOpen(false);
   };
 
   const handleDelete = (id: string) => {
