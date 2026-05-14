@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, AlertCircle, Search, Calendar, Clock, User, CheckCircle2, ChevronRight, Info } from 'lucide-react';
 import { Appointment } from '../types';
 import { Owner } from '../../owners/types';
 import { Pet } from '../../pets/types';
@@ -8,162 +8,335 @@ interface AppointmentFormProps {
   owners: Owner[];
   pets: Pet[];
   veterinarians: any[];
+  appointments: Appointment[];
   onClose: () => void;
   onSubmit: (data: Omit<Appointment, 'id' | 'registrationDate' | 'status'>) => Promise<void>;
   isSubmitting?: boolean;
+  initialData?: Partial<Omit<Appointment, 'id' | 'registrationDate' | 'status'>>;
 }
 
-export function AppointmentForm({ owners, pets, veterinarians, onClose, onSubmit, isSubmitting }: AppointmentFormProps) {
+export function AppointmentForm({ owners, pets, veterinarians, appointments, onClose, onSubmit, isSubmitting, initialData }: AppointmentFormProps) {
+  const [step, setStep] = useState(0); // 0: Form, 1: Summary
   const [formData, setFormData] = useState({
-    ownerId: '',
-    petId: '',
-    vetId: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '08:00',
-    reason: '',
-    durationMinutes: 30
+    ownerId: initialData?.ownerId || '',
+    petId: initialData?.petId || '',
+    vetId: initialData?.vetId || '',
+    date: initialData?.date || new Date().toISOString().split('T')[0],
+    time: initialData?.time || '08:00',
+    reason: initialData?.reason || '',
+    durationMinutes: initialData?.durationMinutes || 30
   });
 
-  const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
+  const [petSearch, setPetSearch] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (formData.ownerId) {
-      setFilteredPets(pets.filter(p => p.ownerId === formData.ownerId));
-    } else {
-      setFilteredPets([]);
-    }
-  }, [formData.ownerId, pets]);
+  // Search pets by name or owner name
+  const searchedPets = useMemo(() => {
+    if (!petSearch.trim()) return [];
+    const search = petSearch.toLowerCase();
+    return pets.filter(p => {
+      const owner = owners.find(o => o.id === p.ownerId);
+      const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
+      return p.name.toLowerCase().includes(search) || ownerName.includes(search);
+    }).slice(0, 5); // Limit results
+  }, [petSearch, pets, owners]);
+
+  // Check veterinarian availability
+  const availableVets = useMemo(() => {
+    return veterinarians.filter(vet => {
+      const isBusy = appointments.some(app => 
+        app.vetId === vet.id && 
+        app.date === formData.date && 
+        app.time === formData.time &&
+        app.status !== 'Cancelada'
+      );
+      return !isBusy;
+    });
+  }, [veterinarians, appointments, formData.date, formData.time]);
+
+  // Suggest alternative times if conflict
+  const suggestions = useMemo(() => {
+    if (!formData.vetId || !formData.date || !formData.time) return [];
+    
+    const times = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+    return times.filter(t => {
+      if (t === formData.time) return false;
+      const isBusy = appointments.some(app => 
+        app.vetId === formData.vetId && 
+        app.date === formData.date && 
+        app.time === t &&
+        app.status !== 'Cancelada'
+      );
+      return !isBusy;
+    }).slice(0, 3);
+  }, [formData.vetId, formData.date, formData.time, appointments]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.ownerId) newErrors.ownerId = 'Debe seleccionar un propietario';
     if (!formData.petId) newErrors.petId = 'Debe seleccionar una mascota';
     if (!formData.vetId) newErrors.vetId = 'Debe seleccionar un veterinario';
     if (!formData.date) newErrors.date = 'La fecha es obligatoria';
     if (!formData.time) newErrors.time = 'La hora es obligatoria';
-    if (!formData.reason) newErrors.reason = 'El motivo es obligatorio';
+    if (!formData.reason.trim()) newErrors.reason = 'El motivo de consulta es obligatorio';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
+    if (validate()) setStep(1);
+  };
+
+  const handleConfirm = async () => {
     setServerError(null);
-    if (validate()) {
-      try {
-        await onSubmit(formData);
-      } catch (err) {
-        setServerError('Error al agendar la cita');
-      }
+    try {
+      await onSubmit(formData);
+    } catch (err) {
+      setServerError('Error al agendar la cita');
     }
   };
+
+  const selectedPet = pets.find(p => p.id === formData.petId);
+  const selectedOwner = owners.find(o => o.id === (selectedPet?.ownerId || formData.ownerId));
+  const selectedVet = veterinarians.find(v => v.id === formData.vetId);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h2 className="text-xl font-bold text-[#0A2540]">Agendar Nueva Cita</h2>
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${step === 0 ? 'bg-[#0A2540] text-white' : 'bg-green-100 text-green-600'}`}>
+              {step === 0 ? '1' : <CheckCircle2 size={16} />}
+            </div>
+            <h2 className="text-xl font-bold text-[#0A2540]">
+              {step === 0 ? 'Datos de la Cita' : 'Confirmar Agendamiento'}
+            </h2>
+          </div>
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 transition-all">
             <X size={20} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6">
-          {serverError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700 animate-in slide-in-from-top-2">
-              <AlertCircle size={20} />
-              <p className="text-sm font-medium">{serverError}</p>
-            </div>
-          )}
+        {step === 0 ? (
+          <form onSubmit={handleNext} className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pet Search */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <Search size={14} className="text-slate-400" />
+                  Búsqueda de Paciente (Mascota o Propietario)
+                </label>
+                <div className="relative">
+                  <input 
+                    type="text"
+                    placeholder="Escriba nombre de mascota o dueño..."
+                    className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.petId ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm`}
+                    value={petSearch}
+                    onChange={(e) => setPetSearch(e.target.value)}
+                  />
+                  {searchedPets.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-20 overflow-hidden animate-in slide-in-from-top-2">
+                      {searchedPets.map(p => {
+                        const o = owners.find(owner => owner.id === p.ownerId);
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                            onClick={() => {
+                              setFormData({...formData, petId: p.id, ownerId: p.ownerId});
+                              setPetSearch(`${p.name} (${o?.firstName} ${o?.lastName})`);
+                              setPetSearch(''); // Clear search after selection but keep selected display
+                              setPetSearch(p.name);
+                            }}
+                          >
+                            <div className="text-left">
+                              <p className="text-sm font-bold text-[#0A2540]">{p.name}</p>
+                              <p className="text-[11px] text-slate-500">{p.species} • {o?.firstName} {o?.lastName}</p>
+                            </div>
+                            <ChevronRight size={16} className="text-slate-300" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {formData.petId && !petSearch && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-100 animate-in fade-in">
+                    <CheckCircle2 size={14} />
+                    Paciente: {selectedPet?.name} ({selectedOwner?.firstName} {selectedOwner?.lastName})
+                  </div>
+                )}
+                {errors.petId && <p className="text-[11px] text-red-500 font-bold">{errors.petId}</p>}
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Propietario *</label>
-              <select 
-                className={`w-full px-4 py-2 border ${errors.ownerId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.ownerId}
-                onChange={(e) => setFormData({...formData, ownerId: e.target.value, petId: ''})}
+              {/* Date & Time */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <Calendar size={14} className="text-slate-400" />
+                  Fecha
+                </label>
+                <input 
+                  type="date" 
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm"
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <Clock size={14} className="text-slate-400" />
+                  Hora
+                </label>
+                <input 
+                  type="time" 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm"
+                  value={formData.time}
+                  onChange={(e) => setFormData({...formData, time: e.target.value})}
+                />
+              </div>
+
+              {/* Veterinarian Selection */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <User size={14} className="text-slate-400" />
+                  Veterinario Asignado
+                </label>
+                <select 
+                  className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.vetId ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm appearance-none`}
+                  value={formData.vetId}
+                  onChange={(e) => setFormData({...formData, vetId: e.target.value})}
+                >
+                  <option value="">Seleccione veterinario...</option>
+                  {veterinarians.map((v: any) => (
+                    <option key={v.id} value={v.id}>
+                      Dr/a. {v.username || v.firstName} {availableVets.some(av => av.id === v.id) ? '' : '(Ocupado)'}
+                    </option>
+                  ))}
+                </select>
+                
+                {/* Conflict Alert */}
+                {formData.vetId && !availableVets.some(av => av.id === formData.vetId) && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 text-amber-800 text-sm font-bold">
+                      <AlertCircle size={16} />
+                      El veterinario tiene otra cita en este horario
+                    </div>
+                    <div className="flex gap-2">
+                      <p className="text-[11px] text-amber-700 font-medium">Horarios alternativos:</p>
+                      {suggestions.map(t => (
+                        <button
+                          key={t}
+                          type="button"
+                          className="px-2 py-0.5 bg-white border border-amber-200 text-amber-800 text-[10px] font-bold rounded hover:bg-amber-100 transition-colors"
+                          onClick={() => setFormData({...formData, time: t})}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Reason */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-bold text-slate-700">Motivo de Consulta (Obligatorio)</label>
+                <textarea 
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.reason ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm min-h-[100px] text-sm`}
+                  value={formData.reason}
+                  onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                  placeholder="Describa el motivo de la visita..."
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex gap-3 justify-end">
+              <button type="button" onClick={onClose} className="px-6 py-2.5 text-slate-500 font-bold text-sm hover:bg-slate-50 rounded-xl transition-all">
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="px-8 py-2.5 bg-[#0A2540] text-white rounded-xl font-bold text-sm hover:bg-[#113255] transition-all shadow-lg shadow-[#0A2540]/20 flex items-center gap-2"
               >
-                <option value="">Seleccione un propietario...</option>
-                {owners.map(o => (
-                  <option key={o.id} value={o.id}>{o.firstName} {o.lastName}</option>
-                ))}
-              </select>
+                Continuar
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="p-8 space-y-8 animate-in slide-in-from-right-4 duration-300">
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4">
+              <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+                <Info size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-blue-900">Resumen de la Cita</h3>
+                <p className="text-xs text-blue-700 mt-1">Por favor, verifique los datos antes de confirmar el agendamiento definitivo.</p>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Mascota *</label>
-              <select 
-                className={`w-full px-4 py-2 border ${errors.petId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.petId}
-                onChange={(e) => setFormData({...formData, petId: e.target.value})}
-                disabled={!formData.ownerId}
+            <div className="grid grid-cols-2 gap-y-6 gap-x-12">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paciente</p>
+                <p className="text-sm font-bold text-[#0A2540]">{selectedPet?.name}</p>
+                <p className="text-xs text-slate-500">{selectedPet?.species} • {selectedPet?.breed}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Propietario</p>
+                <p className="text-sm font-bold text-[#0A2540]">{selectedOwner?.firstName} {selectedOwner?.lastName}</p>
+                <p className="text-xs text-slate-500">{selectedOwner?.phone}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Veterinario</p>
+                <p className="text-sm font-bold text-[#0A2540]">Dr/a. {selectedVet?.username || selectedVet?.firstName}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha y Hora</p>
+                <div className="flex items-center gap-2 text-sm font-bold text-[#0A2540]">
+                  <Calendar size={14} className="text-blue-500" />
+                  {formData.date}
+                  <Clock size={14} className="text-blue-500 ml-2" />
+                  {formData.time}
+                </div>
+              </div>
+              <div className="col-span-2 space-y-1 pt-4 border-t border-slate-50">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Motivo de Consulta</p>
+                <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">{formData.reason}</p>
+              </div>
+            </div>
+
+            {serverError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 text-xs font-bold animate-pulse">
+                <AlertCircle size={16} />
+                {serverError}
+              </div>
+            )}
+
+            <div className="pt-6 border-t border-slate-100 flex gap-3 justify-end">
+              <button 
+                type="button" 
+                onClick={() => setStep(0)} 
+                className="px-6 py-2.5 text-slate-500 font-bold text-sm hover:bg-slate-50 rounded-xl transition-all"
+                disabled={isSubmitting}
               >
-                <option value="">{formData.ownerId ? 'Seleccione mascota...' : 'Primero elija un dueño'}</option>
-                {filteredPets.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.species})</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Veterinario Asignado *</label>
-              <select 
-                className={`w-full px-4 py-2 border ${errors.vetId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.vetId}
-                onChange={(e) => setFormData({...formData, vetId: e.target.value})}
+                Volver a editar
+              </button>
+              <button 
+                onClick={handleConfirm} 
+                disabled={isSubmitting}
+                className="px-10 py-2.5 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 disabled:opacity-70 flex items-center gap-2"
               >
-                <option value="">Seleccione veterinario...</option>
-                {veterinarians.map((v: any) => (
-                  <option key={v.id} value={v.id}>Dra/Dr. {v.username}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Fecha *</label>
-              <input 
-                type="date" 
-                min={new Date().toISOString().split('T')[0]}
-                className={`w-full px-4 py-2 border ${errors.date ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Hora *</label>
-              <input 
-                type="time" 
-                className={`w-full px-4 py-2 border ${errors.time ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
-                value={formData.time}
-                onChange={(e) => setFormData({...formData, time: e.target.value})}
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-sm font-semibold text-slate-700">Motivo de Consulta *</label>
-              <textarea 
-                className={`w-full px-4 py-2 border ${errors.reason ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all min-h-[80px]`}
-                value={formData.reason}
-                onChange={(e) => setFormData({...formData, reason: e.target.value})}
-                placeholder="Ej: Vacunación anual, cojera en pata trasera..."
-              />
+                {isSubmitting ? 'Guardando...' : 'Confirmar y Guardar'}
+                {!isSubmitting && <CheckCircle2 size={18} />}
+              </button>
             </div>
           </div>
-
-          <div className="mt-8 flex gap-3 justify-end">
-            <button type="button" onClick={onClose} className="px-6 py-2 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors">
-              Cancelar
-            </button>
-            <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors shadow-lg shadow-[#0A2540]/20 disabled:opacity-70 flex items-center gap-2">
-              {isSubmitting ? 'Agendando...' : 'Confirmar Cita'}
-            </button>
-          </div>
-        </form>
+        )}
       </div>
     </div>
   );

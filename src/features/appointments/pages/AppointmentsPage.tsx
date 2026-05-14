@@ -16,6 +16,7 @@ export function AppointmentsPage() {
   const { notify } = useNotify();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedVetId, setSelectedVetId] = useState('all');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -34,7 +35,8 @@ export function AppointmentsPage() {
   }, []);
 
 
-  const handleAdd = () => {
+  const handleAdd = (data?: any) => {
+    setInitialFormData(data || null);
     setIsFormOpen(true);
   };
 
@@ -77,7 +79,7 @@ export function AppointmentsPage() {
             </button>
           </div>
           <button 
-            onClick={handleAdd}
+            onClick={() => handleAdd()}
             className="flex-1 sm:flex-none px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10"
           >
             <Plus size={20} />
@@ -94,6 +96,7 @@ export function AppointmentsPage() {
           selectedVetId={selectedVetId}
           onVetChange={setSelectedVetId}
           veterinarians={veterinarians}
+          onAddClick={handleAdd}
         />
       ) : (
         <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-500">
@@ -106,6 +109,8 @@ export function AppointmentsPage() {
           owners={owners}
           pets={pets}
           veterinarians={veterinarians}
+          appointments={appointments}
+          initialData={initialFormData}
           onClose={() => setIsFormOpen(false)}
           onSubmit={handleAddAppointment}
           isSubmitting={isLoading}
