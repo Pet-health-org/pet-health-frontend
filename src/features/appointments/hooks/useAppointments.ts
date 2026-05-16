@@ -10,7 +10,29 @@ export function useAppointments() {
     setIsLoading(true);
     try {
       const response = await getCitas();
-      setAppointments(response.data);
+      const mappedAppointments: Appointment[] = response.data.map((a: any) => {
+        const dateObj = new Date(a.fechaHora);
+        // Format to local date (YYYY-MM-DD) and local time (HH:mm)
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+
+        return {
+          id: a.id,
+          petId: a.mascotaId,
+          vetId: a.veterinarioId,
+          ownerId: a.mascota?.propietarioId || '',
+          date: `${year}-${month}-${day}`,
+          time: `${hours}:${minutes}`,
+          reason: a.motivo,
+          status: a.estado === 'pendiente' ? 'Programada' : (a.estado || 'Programada'),
+          durationMinutes: 30,
+          registrationDate: a.createdAt || new Date().toISOString()
+        };
+      });
+      setAppointments(mappedAppointments);
     } catch (error) {
       console.error('Error fetching appointments:', error);
     } finally {
@@ -36,7 +58,7 @@ export function useAppointments() {
     });
   }, [appointments]);
 
-  const addAppointment = useCallback(async (data: Omit<Appointment, 'id' | 'registrationDate' | 'status'>) => {
+  const addAppointment = useCallback(async (data: any) => {
     setIsLoading(true);
     
     if (checkConflict(data.vetId, data.date, data.time, data.durationMinutes)) {
@@ -45,13 +67,22 @@ export function useAppointments() {
     }
 
     try {
-      await createCita({ ...data, status: 'Programada' });
+      // Map frontend data to backend CreateCitaDto
+      const payload = {
+        mascotaId: data.petId,
+        veterinarioId: data.vetId,
+        fechaHora: new Date(`${data.date}T${data.time}:00`).toISOString(),
+        motivo: data.reason,
+        estado: 'pendiente' // Backend uses 'estado'
+      };
+
+      await createCita(payload);
       await fetchAppointments();
       return { success: true };
     } catch (error) {
       console.error('Error adding appointment:', error);
       setIsLoading(false);
-      return { success: false, message: 'Error al crear la cita.' };
+      return { success: false, message: 'Error al crear la cita en el servidor.' };
     }
   }, [checkConflict, fetchAppointments]);
 

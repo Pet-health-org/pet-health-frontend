@@ -11,7 +11,30 @@ export function useConsultations() {
     setIsLoading(true);
     try {
       const response = await getHistoriasClinicas();
-      setConsultations(response.data);
+      const mappedData: Consultation[] = response.data.map((h: any) => {
+        let extraData = { anamnesis: '', physicalExam: '', reason: '', vitals: { weight: 0, temperature: 0, heartRate: 0, respiratoryRate: 0 } };
+        
+        try {
+          if (h.observaciones && h.observaciones.startsWith('{')) {
+            extraData = JSON.parse(h.observaciones);
+          }
+        } catch (e) {
+          // If not JSON, use the raw string as reason or observations
+          extraData.reason = h.observaciones || '';
+        }
+
+        return {
+          id: h.id,
+          petId: h.mascotaId,
+          date: h.fecha,
+          diagnosis: h.diagnostico,
+          treatment: h.tratamiento,
+          vetId: h.cita?.veterinarioId || 'v1',
+          vetName: h.cita?.veterinario?.nombre || 'Especialista',
+          ...extraData
+        };
+      });
+      setConsultations(mappedData);
     } catch (error) {
       console.error('Error fetching consultations:', error);
     } finally {
@@ -24,7 +47,7 @@ export function useConsultations() {
   }, [fetchConsultations]);
 
   const validateVitals = useCallback((species: Species, vitals: VitalSigns) => {
-    const ranges = SPECIES_VITAL_RANGES[species];
+    const ranges = SPECIES_VITAL_RANGES[species] || SPECIES_VITAL_RANGES['Otros'];
     const results = {
       temperature: vitals.temperature < ranges.temperature.min || vitals.temperature > ranges.temperature.max,
       heartRate: vitals.heartRate < ranges.heartRate.min || vitals.heartRate > ranges.heartRate.max,
@@ -36,10 +59,27 @@ export function useConsultations() {
     };
   }, []);
 
-  const addConsultation = useCallback(async (data: Omit<Consultation, 'id' | 'registrationDate'>) => {
+  const addConsultation = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
-      await createHistoriaClinica(data);
+      // Pack extended data into observations for backend compatibility
+      const extraInfo = {
+        anamnesis: data.anamnesis,
+        physicalExam: data.physicalExam,
+        reason: data.reason,
+        vitals: data.vitals,
+        vetName: data.vetName
+      };
+
+      const payload = {
+        mascotaId: data.petId,
+        fecha: new Date(data.date).toISOString(),
+        diagnostico: data.diagnosis,
+        tratamiento: data.treatment,
+        observaciones: JSON.stringify(extraInfo)
+      };
+
+      await createHistoriaClinica(payload);
       await fetchConsultations();
     } catch (error) {
       console.error('Error adding consultation:', error);

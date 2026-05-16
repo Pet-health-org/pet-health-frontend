@@ -11,14 +11,14 @@ export function VaccinationPage() {
   const { pets } = usePets();
   const { records, getUpcomingVaccines, addRecord, isLoading } = useVaccines();
   const { notify } = useNotify();
-  
+
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const upcoming = getUpcomingVaccines();
-  
-  const filteredPets = pets.filter(p => 
+
+  const filteredPets = pets.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -30,8 +30,8 @@ export function VaccinationPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert 
-        moduleName="Vacunación" 
+      <DevelopmentAlert
+        moduleName="Vacunación"
         variant="warning"
         title="Módulo en Mantenimiento"
         customMessage="El sistema de gestión de vacunas está bajo mantenimiento programado para actualizar los esquemas de refuerzo."
@@ -88,9 +88,9 @@ export function VaccinationPage() {
             <h3 className="font-bold text-[#0A2540] mb-3">Buscar Mascota</h3>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Nombre de mascota..." 
+              <input
+                type="text"
+                placeholder="Nombre de mascota..."
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,7 +98,7 @@ export function VaccinationPage() {
             </div>
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {filteredPets.map(p => (
-                <button 
+                <button
                   key={p.id}
                   onClick={() => setSelectedPet(p)}
                   className={`w-full p-3 rounded-lg border text-left transition-all flex justify-between items-center group ${selectedPet?.id === p.id ? 'bg-blue-50 border-blue-200 shadow-sm' : 'border-slate-100 hover:bg-slate-50'}`}
@@ -128,7 +128,7 @@ export function VaccinationPage() {
                     <p className="text-sm text-slate-500">Historial completo de aplicaciones</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsFormOpen(true)}
                   className="px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-all flex items-center gap-2 text-sm"
                 >
@@ -183,7 +183,7 @@ export function VaccinationPage() {
       </div>
 
       {isFormOpen && selectedPet && (
-        <VaccineForm 
+        <VaccineForm
           pet={selectedPet}
           onClose={() => setIsFormOpen(false)}
           onSubmit={handleAddRecord}

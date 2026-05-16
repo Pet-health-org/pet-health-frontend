@@ -9,6 +9,7 @@ export interface Consultation {
   id: string;
   petId: string;
   vetId: string;
+  vetName?: string;
   date: string;
   reason: string;
   anamnesis: string;

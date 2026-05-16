@@ -22,25 +22,26 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
     petId: initialData?.petId || '',
     vetId: initialData?.vetId || '',
     date: initialData?.date || new Date().toISOString().split('T')[0],
-    time: initialData?.time || '08:00',
+    time: initialData?.time || '',
     reason: initialData?.reason || '',
     durationMinutes: initialData?.durationMinutes || 30
   });
 
   const [petSearch, setPetSearch] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Search pets by name or owner name
   const searchedPets = useMemo(() => {
-    if (!petSearch.trim()) return [];
+    if (!petSearch.trim() || !isDropdownOpen) return [];
     const search = petSearch.toLowerCase();
     return pets.filter(p => {
       const owner = owners.find(o => o.id === p.ownerId);
       const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
       return p.name.toLowerCase().includes(search) || ownerName.includes(search);
     }).slice(0, 5); // Limit results
-  }, [petSearch, pets, owners]);
+  }, [petSearch, pets, owners, isDropdownOpen]);
 
   // Check veterinarian availability
   const availableVets = useMemo(() => {
@@ -55,22 +56,42 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
     });
   }, [veterinarians, appointments, formData.date, formData.time]);
 
-  // Suggest alternative times if conflict
+  // Suggest alternative times if conflict or no vets available
   const suggestions = useMemo(() => {
-    if (!formData.vetId || !formData.date || !formData.time) return [];
+    if (!formData.date || !formData.time) return [];
     
     const times = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+    
+    // If a vet is selected, try to find times for THAT vet first
+    if (formData.vetId) {
+      const vetTimes = times.filter(t => {
+        if (t === formData.time) return false;
+        const isBusy = appointments.some(app => 
+          app.vetId === formData.vetId && 
+          app.date === formData.date && 
+          app.time === t &&
+          app.status !== 'Cancelada'
+        );
+        return !isBusy;
+      });
+      if (vetTimes.length > 0) return vetTimes.slice(0, 3);
+    }
+
+    // If no vet selected OR selected vet has no other times, find times where ANY vet is free
     return times.filter(t => {
       if (t === formData.time) return false;
-      const isBusy = appointments.some(app => 
-        app.vetId === formData.vetId && 
-        app.date === formData.date && 
-        app.time === t &&
-        app.status !== 'Cancelada'
-      );
-      return !isBusy;
+      const freeVets = veterinarians.filter(vet => {
+        const isBusy = appointments.some(app => 
+          app.vetId === vet.id && 
+          app.date === formData.date && 
+          app.time === t &&
+          app.status !== 'Cancelada'
+        );
+        return !isBusy;
+      });
+      return freeVets.length > 0;
     }).slice(0, 3);
-  }, [formData.vetId, formData.date, formData.time, appointments]);
+  }, [formData.vetId, formData.date, formData.time, appointments, veterinarians]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -134,9 +155,15 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                     placeholder="Escriba nombre de mascota o dueño..."
                     className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.petId ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm`}
                     value={petSearch}
-                    onChange={(e) => setPetSearch(e.target.value)}
+                    onFocus={() => setIsDropdownOpen(true)}
+                    onChange={(e) => {
+                      setPetSearch(e.target.value);
+                      setIsDropdownOpen(true);
+                      if (formData.petId) setFormData({...formData, petId: '', ownerId: ''});
+                      if (errors.petId) setErrors({...errors, petId: ''}); // Clear error on type
+                    }}
                   />
-                  {searchedPets.length > 0 && (
+                  {isDropdownOpen && searchedPets.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-20 overflow-hidden animate-in slide-in-from-top-2">
                       {searchedPets.map(p => {
                         const o = owners.find(owner => owner.id === p.ownerId);
@@ -147,9 +174,9 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                             className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                             onClick={() => {
                               setFormData({...formData, petId: p.id, ownerId: p.ownerId});
-                              setPetSearch(`${p.name} (${o?.firstName} ${o?.lastName})`);
-                              setPetSearch(''); // Clear search after selection but keep selected display
                               setPetSearch(p.name);
+                              setIsDropdownOpen(false); // Close explicitly
+                              if (errors.petId) setErrors({...errors, petId: ''}); // Clear error on select
                             }}
                           >
                             <div className="text-left">
@@ -183,7 +210,10 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                   min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm"
                   value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, date: e.target.value});
+                    if (errors.date) setErrors({...errors, date: ''});
+                  }}
                 />
               </div>
 
@@ -196,7 +226,10 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                   type="time" 
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm"
                   value={formData.time}
-                  onChange={(e) => setFormData({...formData, time: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, time: e.target.value});
+                    if (errors.time) setErrors({...errors, time: ''});
+                  }}
                 />
               </div>
 
@@ -209,36 +242,79 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                 <select 
                   className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.vetId ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm appearance-none`}
                   value={formData.vetId}
-                  onChange={(e) => setFormData({...formData, vetId: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, vetId: e.target.value});
+                    if (errors.vetId) setErrors({...errors, vetId: ''});
+                  }}
                 >
                   <option value="">Seleccione veterinario...</option>
-                  {veterinarians.map((v: any) => (
+                  {availableVets.map((v: any) => (
                     <option key={v.id} value={v.id}>
-                      Dr/a. {v.username || v.firstName} {availableVets.some(av => av.id === v.id) ? '' : '(Ocupado)'}
+                      Dr/a. {v.username || v.firstName}
                     </option>
                   ))}
                 </select>
                 
+                {availableVets.length === 0 && formData.date && formData.time && (
+                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl space-y-3 animate-in slide-in-from-top-2">
+                    <div className="flex items-start gap-2 text-amber-800 text-sm font-bold">
+                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                      <div>
+                        <p>No hay veterinarios disponibles</p>
+                        <p className="text-[11px] font-medium opacity-80">Todos los doctores están ocupados en este horario para el día seleccionado.</p>
+                      </div>
+                    </div>
+                    
+                    {suggestions.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-amber-200/50">
+                        <p className="text-[11px] text-amber-700 font-bold uppercase tracking-wider">Prueba con estos horarios libres:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestions.map(t => (
+                            <button
+                              key={t}
+                              type="button"
+                              className="px-3 py-1.5 bg-white border border-amber-200 text-amber-800 text-xs font-bold rounded-lg hover:bg-amber-600 hover:text-white hover:border-amber-600 transition-all shadow-sm flex items-center gap-1"
+                              onClick={() => setFormData({...formData, time: t})}
+                            >
+                              <Clock size={12} />
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 {/* Conflict Alert */}
                 {formData.vetId && !availableVets.some(av => av.id === formData.vetId) && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 animate-in slide-in-from-top-2">
-                    <div className="flex items-center gap-2 text-amber-800 text-sm font-bold">
-                      <AlertCircle size={16} />
-                      El veterinario tiene otra cita en este horario
+                  <div className="p-4 bg-red-50 border border-red-100 rounded-xl space-y-3 animate-in slide-in-from-top-2">
+                    <div className="flex items-start gap-2 text-red-800 text-sm font-bold">
+                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                      <div>
+                        <p>Horario No Disponible</p>
+                        <p className="text-[11px] font-medium opacity-80">El veterinario seleccionado ya tiene una cita programada para este momento.</p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <p className="text-[11px] text-amber-700 font-medium">Horarios alternativos:</p>
-                      {suggestions.map(t => (
-                        <button
-                          key={t}
-                          type="button"
-                          className="px-2 py-0.5 bg-white border border-amber-200 text-amber-800 text-[10px] font-bold rounded hover:bg-amber-100 transition-colors"
-                          onClick={() => setFormData({...formData, time: t})}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
+                    
+                    {suggestions.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-red-200/50">
+                        <p className="text-[11px] text-red-700 font-bold uppercase tracking-wider">Horarios Libres Sugeridos:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestions.map(t => (
+                            <button
+                              key={t}
+                              type="button"
+                              className="px-3 py-1.5 bg-white border border-red-200 text-red-800 text-xs font-bold rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-sm flex items-center gap-1"
+                              onClick={() => setFormData({...formData, time: t})}
+                            >
+                              <Clock size={12} />
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -249,7 +325,10 @@ export function AppointmentForm({ owners, pets, veterinarians, appointments, onC
                 <textarea 
                   className={`w-full px-4 py-3 bg-slate-50 border ${errors.reason ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all shadow-sm min-h-[100px] text-sm`}
                   value={formData.reason}
-                  onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, reason: e.target.value});
+                    if (errors.reason) setErrors({...errors, reason: ''});
+                  }}
                   placeholder="Describa el motivo de la visita..."
                 />
               </div>

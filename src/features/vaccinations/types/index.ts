@@ -4,6 +4,8 @@ export interface VaccinationRecord {
   vaccineName: string;
   applicationDate: string;
   batchNumber: string;
+  lotNumber?: string;
+  dose?: string;
   expiryDate: string;
   nextBoosterDate: string;
   vetId: string;

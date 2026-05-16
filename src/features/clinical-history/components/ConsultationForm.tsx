@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../context/AuthContext';
 import { X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Consultation, VitalSigns } from '../types';
 import { Pet, SPECIES_VITAL_RANGES } from '../../pets/types';
@@ -11,9 +12,11 @@ interface ConsultationFormProps {
 }
 
 export function ConsultationForm({ pet, onClose, onSubmit, isSubmitting }: ConsultationFormProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     petId: pet.id,
-    vetId: 'v1', // Mock current vet
+    vetId: user?.id || 'v1',
+    vetName: user?.username || 'Especialista',
     date: new Date().toISOString().split('T')[0],
     reason: '',
     anamnesis: '',
