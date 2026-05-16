@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, Dog, Cat, Bird, HelpCircle } from 'lucide-react';
 import { Pet, Species } from '../types';
 import { Owner } from '../../owners/types';
@@ -72,15 +73,15 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
               filteredPets.map((pet) => (
                 <tr key={pet.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <Link to={`/pets/${pet.id}`} className="flex items-center gap-3 group">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                         {getSpeciesIcon(pet.species)}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-800">{pet.name}</div>
+                        <div className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors">{pet.name}</div>
                         <div className="text-xs text-slate-500">{pet.sex}, {pet.color}</div>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="p-4 text-sm text-slate-600">
                     <div className="font-medium">{pet.species}</div>

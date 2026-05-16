@@ -14,15 +14,15 @@ export function usePets() {
         id: m.id,
         ownerId: m.propietarioId,
         name: m.nombre,
-        species: m.raza?.especie?.nombre || 'Desconocido',
-        breed: m.raza?.nombre || 'Desconocido',
+        species: m.raza?.especie?.nombre || (m.especie ? m.especie.charAt(0).toUpperCase() + m.especie.slice(1) : 'Desconocido'),
+        breed: m.raza?.nombre || 'Personalizada',
         speciesId: m.raza?.especie?.id || '',
         breedId: m.razaId || '',
         birthDate: new Date(new Date().setFullYear(new Date().getFullYear() - (m.edad || 0))).toISOString(),
         sex: m.sexo,
         color: m.color,
-        weight: m.peso,
-        observations: ''
+        weight: Number(m.peso),
+        observations: m.notas || ''
       }));
       setPets(mappedPets);
     } catch (error) {
@@ -39,16 +39,27 @@ export function usePets() {
   const addPet = useCallback(async (petData: any) => {
     setIsLoading(true);
     try {
-      const edad = petData.birthDate ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) : 0;
+      const edad = petData.birthDate 
+        ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) 
+        : 0;
+
+      let especieEnum = 'otro';
+      const speciesName = (petData.speciesName || '').toLowerCase();
+      if (speciesName.includes('perro')) especieEnum = 'perro';
+      else if (speciesName.includes('gato')) especieEnum = 'gato';
+      else if (speciesName.includes('ave') || speciesName.includes('pájaro')) especieEnum = 'ave';
+
       const payload = {
         propietarioId: petData.ownerId,
-        razaId: petData.breedId,
+        razaId: petData.breedId && petData.breedId !== 'otro' ? petData.breedId : null,
         nombre: petData.name,
+        especie: especieEnum,
         edad: edad,
         sexo: petData.sex,
-        peso: petData.weight,
+        peso: Number(petData.weight),
         color: petData.color || ''
       };
+
       const response = await createMascota(payload);
       await fetchPets();
       return response.data;
@@ -63,16 +74,28 @@ export function usePets() {
   const updatePet = useCallback(async (id: string, petData: any) => {
     setIsLoading(true);
     try {
-      const edad = petData.birthDate ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) : 0;
+      const edad = petData.birthDate 
+        ? Math.floor((new Date().getTime() - new Date(petData.birthDate).getTime()) / 31536000000) 
+        : 0;
+
+      // Map species name to backend enum
+      let especieEnum = 'otro';
+      const speciesName = (petData.speciesName || '').toLowerCase();
+      if (speciesName.includes('perro')) especieEnum = 'perro';
+      else if (speciesName.includes('gato')) especieEnum = 'gato';
+      else if (speciesName.includes('ave') || speciesName.includes('pájaro')) especieEnum = 'ave';
+
       const payload = {
         propietarioId: petData.ownerId,
-        razaId: petData.breedId,
+        razaId: petData.breedId && petData.breedId !== 'otro' ? petData.breedId : null,
         nombre: petData.name,
+        especie: especieEnum,
         edad: edad,
         sexo: petData.sex,
-        peso: petData.weight,
+        peso: Number(petData.weight),
         color: petData.color || ''
       };
+
       await apiUpdateMascota(id, payload);
       await fetchPets();
     } catch (error) {

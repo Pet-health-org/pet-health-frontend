@@ -10,17 +10,23 @@ export function useOwners() {
     setIsLoading(true);
     try {
       const response = await getPropietarios();
-      // Map backend users to frontend owners
-      const mappedOwners: Owner[] = response.data.map((user: any) => ({
-        id: user.id,
-        firstName: user.username, // Using username as name since backend is simple
-        lastName: '',
-        identification: 'N/A',
-        email: user.email,
-        phone: 'N/A',
-        address: 'N/A',
-        registrationDate: user.createdAt,
-      }));
+      const mappedOwners: Owner[] = response.data.map((user: any) => {
+        // Split nombreCompleto into firstName and lastName if possible
+        const nameParts = (user.nombreCompleto || '').split(' ');
+        const firstName = nameParts[0] || user.username || 'Sin nombre';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        return {
+          id: user.id,
+          firstName: firstName,
+          lastName: lastName,
+          identification: user.numeroIdentificacion || 'N/A',
+          email: user.email,
+          phone: user.telefono || 'N/A',
+          address: user.direccion || 'N/A',
+          registrationDate: user.createdAt,
+        };
+      });
       setOwners(mappedOwners);
     } catch (error) {
       console.error('Error fetching owners:', error);
@@ -36,11 +42,16 @@ export function useOwners() {
   const addOwner = useCallback(async (ownerData: Omit<Owner, 'id' | 'registrationDate'>) => {
     setIsLoading(true);
     try {
+      // Prepare data for CreatePropietarioDto
       await createPropietario({
-        username: ownerData.firstName,
+        username: ownerData.email.split('@')[0], // Generate username from email
         email: ownerData.email,
-        password: 'Password123!', // Default password for new owners
-        rolId: 'propietario'
+        password: 'Password123!', // Default password
+        nombreCompleto: `${ownerData.firstName} ${ownerData.lastName}`.trim(),
+        numeroIdentificacion: ownerData.identification,
+        telefono: ownerData.phone,
+        direccion: ownerData.address,
+        notas: (ownerData as any).notes // include notes if present
       });
       await fetchOwners();
     } catch (error) {
@@ -54,10 +65,17 @@ export function useOwners() {
   const updateOwner = useCallback(async (id: string, ownerData: Partial<Owner>) => {
     setIsLoading(true);
     try {
-      await updatePropietario(id, {
-        username: ownerData.firstName,
-        email: ownerData.email,
-      });
+      // Prepare data for UpdatePropietarioDto
+      const payload: any = {};
+      if (ownerData.firstName || ownerData.lastName) {
+        payload.nombreCompleto = `${ownerData.firstName || ''} ${ownerData.lastName || ''}`.trim();
+      }
+      if (ownerData.identification) payload.numeroIdentificacion = ownerData.identification;
+      if (ownerData.phone) payload.telefono = ownerData.phone;
+      if (ownerData.address) payload.direccion = ownerData.address;
+      if ((ownerData as any).notes) payload.notas = (ownerData as any).notes;
+
+      await updatePropietario(id, payload);
       await fetchOwners();
     } catch (error) {
       console.error('Error updating owner:', error);

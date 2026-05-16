@@ -12,7 +12,7 @@ interface VaccineFormProps {
 
 export function VaccineForm({ pet, onClose, onSubmit, isSubmitting }: VaccineFormProps) {
   const scheme = VACCINE_SCHEMES.find(s => s.species === pet.species);
-  
+
   const [formData, setFormData] = useState({
     petId: pet.id,
     vaccineName: '',
@@ -53,14 +53,14 @@ export function VaccineForm({ pet, onClose, onSubmit, isSubmitting }: VaccineFor
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1">
             <label className="text-sm font-semibold text-slate-700">Vacuna *</label>
-            <select 
+            <select
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
               value={formData.vaccineName}
-              onChange={(e) => setFormData({...formData, vaccineName: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, vaccineName: e.target.value })}
               required
             >
               <option value="">Seleccione vacuna...</option>
@@ -74,21 +74,21 @@ export function VaccineForm({ pet, onClose, onSubmit, isSubmitting }: VaccineFor
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Lote *</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
                 value={formData.batchNumber}
-                onChange={(e) => setFormData({...formData, batchNumber: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, batchNumber: e.target.value })}
                 required
               />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Vencimiento Lote *</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
                 value={formData.expiryDate}
-                onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                 required
               />
             </div>
@@ -97,21 +97,21 @@ export function VaccineForm({ pet, onClose, onSubmit, isSubmitting }: VaccineFor
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Fecha Aplicación *</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
                 value={formData.applicationDate}
-                onChange={(e) => setFormData({...formData, applicationDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, applicationDate: e.target.value })}
                 required
               />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Próximo Refuerzo *</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none bg-blue-50/50"
                 value={formData.nextBoosterDate}
-                onChange={(e) => setFormData({...formData, nextBoosterDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, nextBoosterDate: e.target.value })}
                 required
               />
             </div>
@@ -119,10 +119,10 @@ export function VaccineForm({ pet, onClose, onSubmit, isSubmitting }: VaccineFor
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-slate-700">Notas</label>
-            <textarea 
+            <textarea
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none min-h-[60px]"
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
 

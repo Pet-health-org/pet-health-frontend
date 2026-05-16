@@ -21,6 +21,8 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
   const [formData, setFormData] = useState({
     speciesId: '',
     breedId: '',
+    customSpecies: '',
+    customBreed: '',
     ownerId: preselectedOwnerId || '',
     name: '',
     birthDate: '',
@@ -43,23 +45,45 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     getEspecies().then(res => setEspecies(res.data)).catch(console.error);
   }, []);
 
-  // Fetch Razas based on species
+  // Fetch Razas based on species string (mapping to DB ID)
   useEffect(() => {
-    if (formData.speciesId) {
-      getRazasByEspecie(formData.speciesId)
-         .then(res => setRazas(res.data))
-         .catch(console.error);
+    if (formData.speciesId && formData.speciesId !== 'otro') {
+      const sId = formData.speciesId.toLowerCase();
+      const dbSpecies = especies.find(e => {
+        const name = e.nombre.toLowerCase();
+        return name.includes(sId) || (sId === 'perro' && name.includes('canin')) || (sId === 'gato' && name.includes('felin'));
+      });
+
+      if (dbSpecies) {
+        getRazasByEspecie(dbSpecies.id)
+           .then(res => setRazas(res.data))
+           .catch(console.error);
+      } else {
+        setRazas([]);
+      }
     } else {
       setRazas([]);
     }
-  }, [formData.speciesId]);
+  }, [formData.speciesId, especies]);
 
   // Load Initial Data
   useEffect(() => {
     if (pet) {
+      // Find the enum-compatible string for the pet's species
+      let speciesVal = pet.speciesId || '';
+      if (pet.species) {
+        const lowerName = pet.species.toLowerCase();
+        if (lowerName.includes('perro')) speciesVal = 'perro';
+        else if (lowerName.includes('gato')) speciesVal = 'gato';
+        else if (lowerName.includes('ave')) speciesVal = 'ave';
+        else speciesVal = 'otro';
+      }
+
       setFormData({
-        speciesId: pet.speciesId || '',
+        speciesId: speciesVal,
         breedId: pet.breedId || '',
+        customSpecies: pet.customSpecies || '',
+        customBreed: pet.customBreed || '',
         ownerId: pet.ownerId,
         name: pet.name,
         birthDate: pet.birthDate ? pet.birthDate.split('T')[0] : '',
@@ -119,7 +143,14 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.speciesId) newErrors.speciesId = 'La especie es obligatoria';
+    if (formData.speciesId === 'otro' && !formData.customSpecies) {
+      newErrors.customSpecies = 'Especifique la especie';
+    }
+    
     if (!formData.breedId) newErrors.breedId = 'La raza es obligatoria';
+    if (formData.breedId === 'otro' && !formData.customBreed) {
+      newErrors.customBreed = 'Especifique la raza';
+    }
     if (!formData.ownerId) newErrors.ownerId = 'Debe seleccionar un propietario';
     if (!formData.name) newErrors.name = 'El nombre es obligatorio';
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
@@ -133,9 +164,26 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
+      const selectedSpecies = especies.find(esp => esp.id === formData.speciesId);
+      
+      // Determine the readable name for the species
+      let speciesName = '';
+      if (formData.speciesId === 'otro') {
+        speciesName = formData.customSpecies;
+      } else if (selectedSpecies) {
+        speciesName = selectedSpecies.nombre;
+      } else {
+        // If it's one of our hardcoded options (perro, gato, ave)
+        speciesName = formData.speciesId.charAt(0).toUpperCase() + formData.speciesId.slice(1);
+      }
+
+      const selectedBreed = razas.find(raz => raz.id === formData.breedId);
+      
       onSubmit({
         ...formData,
-        weight: Number(formData.weight)
+        weight: Number(formData.weight),
+        speciesName: speciesName,
+        breedName: formData.breedId === 'otro' ? formData.customBreed : (selectedBreed?.nombre || '')
       });
     }
   };
@@ -161,32 +209,62 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
                 className={`w-full px-4 py-2 border ${errors.speciesId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.speciesId}
                 onChange={(e) => {
-                  setFormData({...formData, speciesId: e.target.value, breedId: ''});
+                  setFormData({...formData, speciesId: e.target.value, breedId: '', customSpecies: '', customBreed: ''});
                 }}
               >
                 <option value="">Seleccione una especie...</option>
-                {especies.map(e => (
-                  <option key={e.id} value={e.id}>{e.nombre}</option>
-                ))}
+                <option value="perro">Perro</option>
+                <option value="gato">Gato</option>
+                <option value="ave">Ave</option>
+                <option value="otro">Otro (Especificar)</option>
               </select>
               {errors.speciesId && <p className="text-xs text-red-500">{errors.speciesId}</p>}
             </div>
+
+            {formData.speciesId === 'otro' && (
+              <div className="md:col-span-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                <label className="text-sm font-semibold text-slate-700">¿Cuál especie? *</label>
+                <input 
+                  type="text" 
+                  className={`w-full px-4 py-2 border ${errors.customSpecies ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
+                  placeholder="Ej: Hurón, Conejo, Reptil..."
+                  value={formData.customSpecies}
+                  onChange={(e) => setFormData({...formData, customSpecies: e.target.value})}
+                />
+                {errors.customSpecies && <p className="text-xs text-red-500">{errors.customSpecies}</p>}
+              </div>
+            )}
 
             <div className="md:col-span-2 space-y-1">
               <label className="text-sm font-semibold text-slate-700">Raza *</label>
               <select 
                 className={`w-full px-4 py-2 border ${errors.breedId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.breedId}
-                onChange={(e) => setFormData({...formData, breedId: e.target.value})}
-                disabled={!formData.speciesId || razas.length === 0}
+                onChange={(e) => setFormData({...formData, breedId: e.target.value, customBreed: ''})}
+                disabled={!formData.speciesId}
               >
                 <option value="">Seleccione una raza...</option>
                 {razas.map(r => (
                   <option key={r.id} value={r.id}>{r.nombre}</option>
                 ))}
+                {formData.speciesId && <option value="otro">Otra (Especificar)</option>}
               </select>
               {errors.breedId && <p className="text-xs text-red-500">{errors.breedId}</p>}
             </div>
+
+            {formData.breedId === 'otro' && (
+              <div className="md:col-span-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                <label className="text-sm font-semibold text-slate-700">¿Cuál raza? *</label>
+                <input 
+                  type="text" 
+                  className={`w-full px-4 py-2 border ${errors.customBreed ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
+                  placeholder="Ej: Criollo, Angora, Especie única..."
+                  value={formData.customBreed}
+                  onChange={(e) => setFormData({...formData, customBreed: e.target.value})}
+                />
+                {errors.customBreed && <p className="text-xs text-red-500">{errors.customBreed}</p>}
+              </div>
+            )}
 
             <div className="md:col-span-2 space-y-1 relative" ref={dropdownRef}>
               <label className="text-sm font-semibold text-slate-700">Propietario *</label>
