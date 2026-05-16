@@ -15,14 +15,18 @@ export function OwnerProfilePage() {
       try {
         const response = await getPropietarioById(id as string);
         const user = response.data;
+        const nameParts = (user.nombreCompleto || '').split(' ');
+        const firstName = nameParts[0] || user.username || 'Sin nombre';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
         setOwner({
           id: user.id,
-          firstName: user.username,
-          lastName: '',
-          identification: user.identification || 'N/A',
+          firstName: firstName,
+          lastName: lastName,
+          identification: user.numeroIdentificacion || 'N/A',
           email: user.email,
-          phone: user.phone || 'N/A',
-          address: user.address || 'N/A',
+          phone: user.telefono || 'N/A',
+          address: user.direccion || 'N/A',
           registrationDate: user.createdAt,
         });
       } catch (error) {
