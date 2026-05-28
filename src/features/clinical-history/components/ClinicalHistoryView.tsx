@@ -30,7 +30,7 @@ export function ClinicalHistoryView({ pet, history, vaccines, onNewConsultation 
 
   const filteredVaccines = vaccines.filter(v => 
     v.vaccineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.lotNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    v.lotNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const generatePDF = (consultationsToExport: Consultation[], vaccinesToExport: VaccinationRecord[]) => {

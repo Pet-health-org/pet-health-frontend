@@ -8,6 +8,8 @@ export interface Pet {
   breed: string;
   speciesId?: string;
   breedId?: string;
+  customSpecies?: string;
+  customBreed?: string;
   birthDate: string;
   sex: 'Macho' | 'Hembra' | string;
   color: string;

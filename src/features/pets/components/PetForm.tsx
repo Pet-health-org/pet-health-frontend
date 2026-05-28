@@ -45,19 +45,29 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     getEspecies().then(res => setEspecies(res.data)).catch(console.error);
   }, []);
 
-  // Fetch Razas based on species string (mapping to DB ID)
+  // Fetch Razas based on species string or UUID (mapping to DB ID)
   useEffect(() => {
     if (formData.speciesId && formData.speciesId !== 'otro') {
-      const sId = formData.speciesId.toLowerCase();
-      const dbSpecies = especies.find(e => {
-        const name = e.nombre.toLowerCase();
-        return name.includes(sId) || (sId === 'perro' && name.includes('canin')) || (sId === 'gato' && name.includes('felin'));
-      });
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(formData.speciesId);
+      
+      let targetEspecieId = '';
+      if (isUuid) {
+        targetEspecieId = formData.speciesId;
+      } else {
+        const sId = formData.speciesId.toLowerCase();
+        const dbSpecies = especies.find(e => {
+          const name = e.nombre.toLowerCase();
+          return name.includes(sId) || (sId === 'perro' && name.includes('canin')) || (sId === 'gato' && name.includes('felin'));
+        });
+        if (dbSpecies) {
+          targetEspecieId = dbSpecies.id;
+        }
+      }
 
-      if (dbSpecies) {
-        getRazasByEspecie(dbSpecies.id)
-           .then(res => setRazas(res.data))
-           .catch(console.error);
+      if (targetEspecieId) {
+        getRazasByEspecie(targetEspecieId)
+          .then(res => setRazas(res.data))
+          .catch(console.error);
       } else {
         setRazas([]);
       }
@@ -106,13 +116,13 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     }
     const exactMatch = owners.find(o => `${o.firstName} ${o.lastName}` === ownerSearch);
     if (exactMatch && formData.ownerId === exactMatch.id) {
-       setOwnerResults([]);
-       setIsOwnerDropdownOpen(false);
-       return;
+      setOwnerResults([]);
+      setIsOwnerDropdownOpen(false);
+      return;
     }
 
-    const filtered = owners.filter(o => 
-      `${o.firstName} ${o.lastName}`.toLowerCase().includes(ownerSearch.toLowerCase()) || 
+    const filtered = owners.filter(o =>
+      `${o.firstName} ${o.lastName}`.toLowerCase().includes(ownerSearch.toLowerCase()) ||
       o.identification.includes(ownerSearch)
     );
     setOwnerResults(filtered);
@@ -134,7 +144,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     setFormData(prev => ({ ...prev, ownerId: owner.id }));
     setIsOwnerDropdownOpen(false);
     setErrors(prev => {
-      const e = {...prev};
+      const e = { ...prev };
       delete e.ownerId;
       return e;
     });
@@ -146,7 +156,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     if (formData.speciesId === 'otro' && !formData.customSpecies) {
       newErrors.customSpecies = 'Especifique la especie';
     }
-    
+
     if (!formData.breedId) newErrors.breedId = 'La raza es obligatoria';
     if (formData.breedId === 'otro' && !formData.customBreed) {
       newErrors.customBreed = 'Especifique la raza';
@@ -156,7 +166,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
     const weightNum = Number(formData.weight);
     if (isNaN(weightNum) || weightNum <= 0) newErrors.weight = 'El peso debe ser un valor numérico positivo';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -165,7 +175,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
     e.preventDefault();
     if (validate()) {
       const selectedSpecies = especies.find(esp => esp.id === formData.speciesId);
-      
+
       // Determine the readable name for the species
       let speciesName = '';
       if (formData.speciesId === 'otro') {
@@ -178,7 +188,7 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
       }
 
       const selectedBreed = razas.find(raz => raz.id === formData.breedId);
-      
+
       onSubmit({
         ...formData,
         weight: Number(formData.weight),
@@ -199,23 +209,23 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
+
             <div className="md:col-span-2 space-y-1">
               <label className="text-sm font-semibold text-slate-700">Especie *</label>
-              <select 
+              <select
                 className={`w-full px-4 py-2 border ${errors.speciesId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.speciesId}
                 onChange={(e) => {
-                  setFormData({...formData, speciesId: e.target.value, breedId: '', customSpecies: '', customBreed: ''});
+                  setFormData({ ...formData, speciesId: e.target.value, breedId: '', customSpecies: '', customBreed: '' });
                 }}
               >
                 <option value="">Seleccione una especie...</option>
-                <option value="perro">Perro</option>
-                <option value="gato">Gato</option>
-                <option value="ave">Ave</option>
+                {especies.map(e => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
                 <option value="otro">Otro (Especificar)</option>
               </select>
               {errors.speciesId && <p className="text-xs text-red-500">{errors.speciesId}</p>}
@@ -224,12 +234,12 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
             {formData.speciesId === 'otro' && (
               <div className="md:col-span-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 <label className="text-sm font-semibold text-slate-700">¿Cuál especie? *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={`w-full px-4 py-2 border ${errors.customSpecies ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                   placeholder="Ej: Hurón, Conejo, Reptil..."
                   value={formData.customSpecies}
-                  onChange={(e) => setFormData({...formData, customSpecies: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, customSpecies: e.target.value })}
                 />
                 {errors.customSpecies && <p className="text-xs text-red-500">{errors.customSpecies}</p>}
               </div>
@@ -237,10 +247,10 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
 
             <div className="md:col-span-2 space-y-1">
               <label className="text-sm font-semibold text-slate-700">Raza *</label>
-              <select 
+              <select
                 className={`w-full px-4 py-2 border ${errors.breedId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.breedId}
-                onChange={(e) => setFormData({...formData, breedId: e.target.value, customBreed: ''})}
+                onChange={(e) => setFormData({ ...formData, breedId: e.target.value, customBreed: '' })}
                 disabled={!formData.speciesId}
               >
                 <option value="">Seleccione una raza...</option>
@@ -255,12 +265,12 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
             {formData.breedId === 'otro' && (
               <div className="md:col-span-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 <label className="text-sm font-semibold text-slate-700">¿Cuál raza? *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={`w-full px-4 py-2 border ${errors.customBreed ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                   placeholder="Ej: Criollo, Angora, Especie única..."
                   value={formData.customBreed}
-                  onChange={(e) => setFormData({...formData, customBreed: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, customBreed: e.target.value })}
                 />
                 {errors.customBreed && <p className="text-xs text-red-500">{errors.customBreed}</p>}
               </div>
@@ -270,26 +280,26 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
               <label className="text-sm font-semibold text-slate-700">Propietario *</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
+                <input
                   type="text"
                   placeholder="Buscar propietario por nombre o documento..."
                   className={`w-full pl-10 pr-4 py-2 border ${errors.ownerId ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                   value={ownerSearch}
                   onChange={(e) => {
                     setOwnerSearch(e.target.value);
-                    if (formData.ownerId) setFormData({...formData, ownerId: ''});
+                    if (formData.ownerId) setFormData({ ...formData, ownerId: '' });
                   }}
                   disabled={!!preselectedOwnerId}
                   onFocus={() => { if (ownerResults.length > 0) setIsOwnerDropdownOpen(true); }}
                 />
               </div>
               {errors.ownerId && <p className="text-xs text-red-500">{errors.ownerId}</p>}
-              
+
               {isOwnerDropdownOpen && ownerResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {ownerResults.map(owner => (
-                    <div 
-                      key={owner.id} 
+                    <div
+                      key={owner.id}
                       className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
                       onClick={() => selectOwner(owner)}
                     >
@@ -303,22 +313,22 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
 
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Nombre de la Mascota *</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
               {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Fecha de Nacimiento *</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className={`w-full px-4 py-2 border ${errors.birthDate ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.birthDate}
-                onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
               />
               {errors.birthDate && <p className="text-xs text-red-500">{errors.birthDate}</p>}
             </div>
@@ -327,23 +337,23 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
               <label className="text-sm font-semibold text-slate-700">Sexo</label>
               <div className="flex gap-4 p-2">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    name="sex" 
+                  <input
+                    type="radio"
+                    name="sex"
                     value="Macho"
                     checked={formData.sex === 'Macho'}
-                    onChange={() => setFormData({...formData, sex: 'Macho'})}
+                    onChange={() => setFormData({ ...formData, sex: 'Macho' })}
                     className="w-4 h-4 text-[#0A2540]"
                   />
                   <span className="text-sm text-slate-600">Macho</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    name="sex" 
+                  <input
+                    type="radio"
+                    name="sex"
                     value="Hembra"
                     checked={formData.sex === 'Hembra'}
-                    onChange={() => setFormData({...formData, sex: 'Hembra'})}
+                    onChange={() => setFormData({ ...formData, sex: 'Hembra' })}
                     className="w-4 h-4 text-[#0A2540]"
                   />
                   <span className="text-sm text-slate-600">Hembra</span>
@@ -353,46 +363,49 @@ export function PetForm({ pet, owners, onClose, onSubmit, isSubmitting, preselec
 
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Color / Señas</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all"
                 value={formData.color}
-                onChange={(e) => setFormData({...formData, color: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
               />
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Peso (kg) *</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 step="0.1"
                 min="0.1"
                 className={`w-full px-4 py-2 border ${errors.weight ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.weight}
-                onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value)})}
+                onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) })}
               />
               {errors.weight && <p className="text-xs text-red-500">{errors.weight}</p>}
             </div>
 
             <div className="md:col-span-2 space-y-1">
               <label className="text-sm font-semibold text-slate-700">Observaciones</label>
-              <textarea 
+              <span className="text-[10px] text-amber-600 block bg-amber-50 px-2 py-1 rounded border border-amber-100 mb-1">
+                ⚠️ Las observaciones no se guardarán en la base de datos hasta que los programadores de backend agreguen esta columna.
+              </span>
+              <textarea
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all min-h-[80px]"
                 value={formData.observations}
-                onChange={(e) => setFormData({...formData, observations: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
               />
             </div>
           </div>
 
           <div className="mt-8 flex gap-3 justify-end">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="px-6 py-2 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
             >
               Cancelar
             </button>
-            <button 
+            <button
               type="submit"
               disabled={isSubmitting}
               className="px-6 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors shadow-lg shadow-[#0A2540]/20 disabled:opacity-70 flex items-center gap-2"

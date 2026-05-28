@@ -122,7 +122,7 @@ export function DashboardLayout() {
             <h2 className="text-lg font-semibold text-slate-700 hidden md:block whitespace-nowrap mr-4">
               Panel de Control
             </h2>
-            
+
             {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') && (
               <div className="flex-1 max-w-lg hidden sm:block">
                 <OwnerSearch />
