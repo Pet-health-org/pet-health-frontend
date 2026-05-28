@@ -13,6 +13,8 @@ export interface InventoryItem {
   expiryDate: string;
   provider: string;
   registrationDate: string;
+  price?: number;
+  providerId?: string;
 }
 
 export interface InventoryMovement {

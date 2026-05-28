@@ -10,7 +10,20 @@ export function useVaccines() {
     setIsLoading(true);
     try {
       const response = await getVacunas();
-      setRecords(response.data);
+      const mappedRecords: VaccinationRecord[] = response.data.map((item: any) => ({
+        id: item.id,
+        petId: item.historiaClinica?.mascotaId || '',
+        vaccineName: item.nombre,
+        applicationDate: item.fechaAplicacion,
+        batchNumber: item.lote || '',
+        lotNumber: item.lote || '',
+        dose: item.dosis || '',
+        expiryDate: item.inventario?.fechaVencimiento || '',
+        nextBoosterDate: item.fechaProximoRefuerzo || '',
+        vetId: item.historiaClinica?.veterinarioId || '',
+        notes: item.historiaClinica?.observaciones || '',
+      }));
+      setRecords(mappedRecords);
     } catch (error) {
       console.error('Error fetching vaccines:', error);
     } finally {
