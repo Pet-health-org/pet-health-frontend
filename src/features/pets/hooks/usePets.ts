@@ -45,8 +45,8 @@ export function usePets() {
 
       let especieEnum = 'otro';
       const speciesName = (petData.speciesName || '').toLowerCase();
-      if (speciesName.includes('perro')) especieEnum = 'perro';
-      else if (speciesName.includes('gato')) especieEnum = 'gato';
+      if (speciesName.includes('perro') || speciesName.includes('canin')) especieEnum = 'perro';
+      else if (speciesName.includes('gato') || speciesName.includes('felin')) especieEnum = 'gato';
       else if (speciesName.includes('ave') || speciesName.includes('pájaro')) especieEnum = 'ave';
 
       const payload = {
@@ -81,8 +81,8 @@ export function usePets() {
       // Map species name to backend enum
       let especieEnum = 'otro';
       const speciesName = (petData.speciesName || '').toLowerCase();
-      if (speciesName.includes('perro')) especieEnum = 'perro';
-      else if (speciesName.includes('gato')) especieEnum = 'gato';
+      if (speciesName.includes('perro') || speciesName.includes('canin')) especieEnum = 'perro';
+      else if (speciesName.includes('gato') || speciesName.includes('felin')) especieEnum = 'gato';
       else if (speciesName.includes('ave') || speciesName.includes('pájaro')) especieEnum = 'ave';
 
       const payload = {

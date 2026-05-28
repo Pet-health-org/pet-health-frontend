@@ -29,7 +29,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
     }
   };
 
-  const filteredPets = pets.filter(p => 
+  const filteredPets = pets.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getOwnerName(p.ownerId).toLowerCase().includes(searchTerm.toLowerCase())
@@ -40,15 +40,15 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
       <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre, raza o dueño..." 
+          <input
+            type="text"
+            placeholder="Buscar por nombre, raza o dueño..."
             className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button 
+        <button
           onClick={onAdd}
           className="w-full sm:w-auto px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2"
         >
@@ -79,7 +79,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
                       </div>
                       <div>
                         <div className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors">{pet.name}</div>
-                        <div className="text-xs text-slate-500">{pet.sex}, {pet.color}</div>
+                        <div className="text-xs text-slate-500">{pet.sex}, {pet.color}, {new Date().getFullYear() - new Date(pet.birthDate).getFullYear()} años</div>
                       </div>
                     </Link>
                   </td>
@@ -94,16 +94,16 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
                     {pet.weight} kg
                   </td>
                   <td className="p-4 text-right space-x-2">
-                    <button 
+                    <button
                       onClick={() => onEdit(pet)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" 
+                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                       title="Editar"
                     >
                       <Edit size={18} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => onDelete(pet.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" 
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                       title="Eliminar"
                     >
                       <Trash2 size={18} />
@@ -121,7 +121,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
           </tbody>
         </table>
       </div>
-      
+
       <div className="p-4 border-t border-slate-200 text-sm text-slate-500">
         Mostrando {filteredPets.length} de {pets.length} registros
       </div>

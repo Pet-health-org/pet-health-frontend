@@ -38,13 +38,13 @@ export function useInventory() {
   const recordMovement = useCallback(async (itemId: string, type: 'Entrada' | 'Salida', quantity: number, reason: string) => {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
-    
+
     const newStock = type === 'Entrada' ? item.stock + quantity : item.stock - quantity;
     setIsLoading(true);
     try {
       await apiUpdateInventario(itemId, { stock: newStock });
       await fetchItems();
-      
+
       const newMovement: InventoryMovement = {
         id: Math.random().toString(36).substr(2, 5),
         itemId,

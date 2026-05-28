@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Package, AlertTriangle } from 'lucide-react';
 import { InventoryItem, ItemCategory } from '../types';
+import { useInventory } from '../hooks/useInventory';
 
 interface InventoryFormProps {
   onClose: () => void;
@@ -8,23 +9,68 @@ interface InventoryFormProps {
 }
 
 export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
+  const { items } = useInventory();
+  
   const [formData, setFormData] = useState({
     code: '',
     name: '',
     description: '',
     category: 'Medicamento' as ItemCategory,
     presentation: '',
-    unit: 'unidades',
+    unit: 'ml',
     stock: 0,
     minStock: 5,
     expiryDate: '',
     provider: ''
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.code.trim()) {
+      newErrors.code = 'El código es requerido';
+    } else if (items.some(item => item.code.toLowerCase() === formData.code.trim().toLowerCase())) {
+      newErrors.code = 'Este código ya está registrado en el inventario';
+    }
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre es requerido';
+    }
+
+    if (!formData.presentation.trim()) {
+      newErrors.presentation = 'La presentación es requerida';
+    }
+
+    if (formData.stock < 0) {
+      newErrors.stock = 'El stock no puede ser negativo';
+    }
+
+    if (formData.minStock < 0) {
+      newErrors.minStock = 'El stock mínimo no puede ser negativo';
+    }
+
+    if (!formData.expiryDate) {
+      newErrors.expiryDate = 'La fecha de vencimiento es requerida';
+    } else {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const expDate = new Date(formData.expiryDate);
+      if (expDate <= today) {
+        newErrors.expiryDate = 'La fecha de vencimiento debe ser posterior a hoy';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
+    if (validate()) {
+      onSubmit(formData);
+    }
   };
 
   return (
@@ -37,17 +83,20 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Código Único *</label>
               <input 
                 type="text" 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.code ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
                 value={formData.code}
-                onChange={(e) => setFormData({...formData, code: e.target.value})}
-                required
+                onChange={(e) => {
+                  setFormData({...formData, code: e.target.value});
+                  if (errors.code) setErrors({...errors, code: ''});
+                }}
               />
+              {errors.code && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.code}</p>}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Categoría *</label>
@@ -67,11 +116,14 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
             <label className="text-sm font-semibold text-slate-700">Nombre del Producto *</label>
             <input 
               type="text" 
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+              className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.name ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              required
+              onChange={(e) => {
+                setFormData({...formData, name: e.target.value});
+                if (errors.name) setErrors({...errors, name: ''});
+              }}
             />
+            {errors.name && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.name}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -80,22 +132,29 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
               <input 
                 type="text" 
                 placeholder="Ej: Frasco 10ml, Caja x 30"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.presentation ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
                 value={formData.presentation}
-                onChange={(e) => setFormData({...formData, presentation: e.target.value})}
-                required
+                onChange={(e) => {
+                  setFormData({...formData, presentation: e.target.value});
+                  if (errors.presentation) setErrors({...errors, presentation: ''});
+                }}
               />
+              {errors.presentation && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.presentation}</p>}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Unidad de Medida *</label>
-              <input 
-                type="text" 
-                placeholder="unidades, ml, mg"
+              <select 
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
                 value={formData.unit}
                 onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                required
-              />
+              >
+                <option value="ml">Mililitros (ml)</option>
+                <option value="mg">Miligramos (mg)</option>
+                <option value="g">Gramos (g)</option>
+                <option value="unidades">Unidades</option>
+                <option value="dosis">Dosis</option>
+                <option value="comprimidos">Comprimidos</option>
+              </select>
             </div>
           </div>
 
@@ -104,21 +163,27 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
               <label className="text-sm font-semibold text-slate-700">Stock Inicial *</label>
               <input 
                 type="number" 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.stock ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
                 value={formData.stock}
-                onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value)})}
-                required
+                onChange={(e) => {
+                  setFormData({...formData, stock: parseInt(e.target.value) || 0});
+                  if (errors.stock) setErrors({...errors, stock: ''});
+                }}
               />
+              {errors.stock && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.stock}</p>}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Stock Mínimo *</label>
               <input 
                 type="number" 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.minStock ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
                 value={formData.minStock}
-                onChange={(e) => setFormData({...formData, minStock: parseInt(e.target.value)})}
-                required
+                onChange={(e) => {
+                  setFormData({...formData, minStock: parseInt(e.target.value) || 0});
+                  if (errors.minStock) setErrors({...errors, minStock: ''});
+                }}
               />
+              {errors.minStock && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.minStock}</p>}
             </div>
           </div>
 
@@ -127,11 +192,14 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
               <label className="text-sm font-semibold text-slate-700">Fecha Vencimiento *</label>
               <input 
                 type="date" 
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.expiryDate ? 'border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:ring-2 focus:ring-[#A8DADC]'}`}
                 value={formData.expiryDate}
-                onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-                required
+                onChange={(e) => {
+                  setFormData({...formData, expiryDate: e.target.value});
+                  if (errors.expiryDate) setErrors({...errors, expiryDate: ''});
+                }}
               />
+              {errors.expiryDate && <p className="text-xs text-red-600 flex items-center gap-1 mt-1"><AlertTriangle size={12}/> {errors.expiryDate}</p>}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Proveedor</label>
@@ -144,7 +212,17 @@ export function InventoryForm({ onClose, onSubmit }: InventoryFormProps) {
             </div>
           </div>
 
-          <div className="mt-8 flex gap-3 justify-end">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-slate-700">Descripción Adicional</label>
+            <textarea 
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none min-h-[60px]"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Detalles adicionales del producto..."
+            />
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-slate-100 flex gap-3 justify-end">
             <button type="button" onClick={onClose} className="px-6 py-2 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors">
               Cancelar
             </button>
