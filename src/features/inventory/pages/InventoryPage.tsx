@@ -22,7 +22,8 @@ export function InventoryPage() {
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.code.toLowerCase().includes(searchTerm.toLowerCase())
+    item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.provider.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -114,6 +115,7 @@ export function InventoryPage() {
               <tr className="bg-slate-50 text-slate-600 text-sm border-b border-slate-200">
                 <th className="p-4 font-semibold">Producto</th>
                 <th className="p-4 font-semibold">Categoría</th>
+                <th className="p-4 font-semibold">Proveedor</th>
                 <th className="p-4 font-semibold">Stock Actual</th>
                 <th className="p-4 font-semibold">Vencimiento</th>
                 <th className="p-4 font-semibold text-right">Acciones</th>
@@ -134,14 +136,15 @@ export function InventoryPage() {
                       {item.category}
                     </span>
                   </td>
+                  <td className="p-4 text-sm text-slate-600">{item.provider || 'N/A'}</td>
                   <td className="p-4">
                     <div className={`text-sm font-bold ${item.stock <= item.minStock ? 'text-red-600' : 'text-slate-700'}`}>
-                      {item.stock} {item.unit}
+                      {item.stock} {item.unit || 'u'}
                     </div>
                     <div className="text-[10px] text-slate-400">Min: {item.minStock}</div>
                   </td>
                   <td className="p-4 text-sm text-slate-600">
-                    {new Date(item.expiryDate).toLocaleDateString()}
+                    {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : 'Sin fecha'}
                   </td>
                   <td className="p-4 text-right">
                     <button className="text-sm font-bold text-[#0A2540] hover:underline">Ver detalles</button>

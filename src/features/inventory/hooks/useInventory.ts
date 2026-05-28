@@ -11,7 +11,29 @@ export function useInventory() {
     setIsLoading(true);
     try {
       const response = await getInventarios();
-      setItems(response.data);
+      const mappedItems: InventoryItem[] = response.data.map((item: any) => ({
+        id: item.id,
+        code: item.id,
+        name: item.nombreProducto,
+        description: '',
+        category: item.tipo
+          ? item.tipo.toLowerCase().includes('vacuna')
+            ? 'Vacuna'
+            : item.tipo.toLowerCase().includes('med')
+              ? 'Medicamento'
+              : 'Insumo'
+          : 'Insumo',
+        presentation: '',
+        unit: '',
+        stock: item.stockActual,
+        minStock: item.stockMinimo,
+        expiryDate: item.fechaVencimiento || '',
+        provider: item.proveedor?.nombreEmpresa || '',
+        registrationDate: item.createdAt || '',
+        price: item.precioUnitario,
+        providerId: item.proveedorId,
+      }));
+      setItems(mappedItems);
     } catch (error) {
       console.error('Error fetching inventory:', error);
     } finally {
