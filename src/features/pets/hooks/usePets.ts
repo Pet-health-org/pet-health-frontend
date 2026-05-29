@@ -10,20 +10,29 @@ export function usePets() {
     setIsLoading(true);
     try {
       const response = await findAll();
-      const mappedPets: Pet[] = response.data.map((p: any) => ({
-        id: p.id,
-        name: p.nombre,
-        speciesId: p.especieId,
-        species: p.especie?.nombre || 'Desconocida',
-        breedId: p.razaId,
-        breed: p.raza?.nombre || 'Desconocida',
-        ownerId: p.propietarioId,
-        birthDate: p.fechaNacimiento,
-        sex: p.sexo,
-        color: p.color,
-        weight: p.peso,
-        registrationDate: p.createdAt
-      }));
+      const mappedPets: Pet[] = response.data.map((p: any) => {
+        // Generar un birthDate aproximado basado en la edad para que el UI funcione
+        const birthDate = new Date();
+        birthDate.setFullYear(birthDate.getFullYear() - (p.edad || 0));
+        
+        // Capitalize especie para que los íconos de la UI (PetList) coincidan ('Perro', 'Gato', etc)
+        const especieName = p.especie ? p.especie.charAt(0).toUpperCase() + p.especie.slice(1) : 'Desconocida';
+
+        return {
+          id: p.id,
+          name: p.nombre,
+          speciesId: '', // Backend no devuelve speciesId
+          species: especieName,
+          breedId: p.razaId,
+          breed: p.raza?.nombre || 'Desconocida',
+          ownerId: p.propietarioId,
+          birthDate: birthDate.toISOString(),
+          sex: p.sexo,
+          color: p.color,
+          weight: p.peso,
+          registrationDate: p.createdAt
+        };
+      });
       setPets(mappedPets);
     } catch (error) {
       console.error('Error fetching pets:', error);
@@ -39,16 +48,35 @@ export function usePets() {
   const addPet = useCallback(async (petData: any) => {
     setIsLoading(true);
     try {
+      // Calcular edad a partir del birthDate proporcionado por el formulario
+      let edadCalculada = 0;
+      if (petData.birthDate) {
+        const bd = new Date(petData.birthDate);
+        const ageDifMs = Date.now() - bd.getTime();
+        const ageDate = new Date(ageDifMs);
+        edadCalculada = Math.abs(ageDate.getUTCFullYear() - 1970);
+      }
+
+      // Determinar especie enum
+      let especieEnum = 'otro';
+      if (petData.speciesName) {
+        const nameLower = petData.speciesName.toLowerCase();
+        if (nameLower.includes('perro') || nameLower.includes('canin')) especieEnum = 'perro';
+        else if (nameLower.includes('gato') || nameLower.includes('felin')) especieEnum = 'gato';
+        else if (nameLower.includes('ave') || nameLower.includes('pajar')) especieEnum = 'ave';
+      }
+
       const payload = {
         nombre: petData.name,
-        especieId: petData.speciesId === 'otro' ? undefined : petData.speciesId,
+        especie: especieEnum,
         razaId: petData.breedId === 'otro' ? undefined : petData.breedId,
-        fechaNacimiento: new Date(petData.birthDate).toISOString(),
+        edad: edadCalculada,
         sexo: petData.sex,
-        color: petData.color,
-        peso: petData.weight,
+        color: petData.color || 'Desconocido',
+        peso: Number(petData.weight) || 0.1,
         propietarioId: petData.ownerId,
       };
+      
       const response = await create(payload);
       await fetchPets();
       return response.data;
@@ -68,8 +96,23 @@ export function usePets() {
       if (petData.breedId && petData.breedId !== 'otro') payload.razaId = petData.breedId;
       if (petData.sex) payload.sexo = petData.sex;
       if (petData.color) payload.color = petData.color;
-      if (petData.weight !== undefined) payload.peso = petData.weight;
+      if (petData.weight !== undefined) payload.peso = Number(petData.weight);
       if (petData.ownerId) payload.propietarioId = petData.ownerId;
+      
+      if (petData.birthDate) {
+        const bd = new Date(petData.birthDate);
+        const ageDifMs = Date.now() - bd.getTime();
+        const ageDate = new Date(ageDifMs);
+        payload.edad = Math.abs(ageDate.getUTCFullYear() - 1970);
+      }
+
+      if (petData.speciesName) {
+        const nameLower = petData.speciesName.toLowerCase();
+        if (nameLower.includes('perro') || nameLower.includes('canin')) payload.especie = 'perro';
+        else if (nameLower.includes('gato') || nameLower.includes('felin')) payload.especie = 'gato';
+        else if (nameLower.includes('ave') || nameLower.includes('pajar')) payload.especie = 'ave';
+        else payload.especie = 'otro';
+      }
 
       await update(id, payload);
       await fetchPets();

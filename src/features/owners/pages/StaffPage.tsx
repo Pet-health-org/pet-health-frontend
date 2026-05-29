@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Shield, X } from 'lucide-react';
 import { useNotify } from '../../../context/NotificationContext';
-import api from '../../../services/api';
+import { findAll as getVeterinarios } from '../../../services/veterinario.service';
+import { findAll as getRecepcionistas } from '../../../services/recepcionista.service';
+import { findAll as getAdmins } from '../../../services/admin.service';
+import { register } from '../../../services/user.service';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
 
 export function StaffPage() {
@@ -20,13 +23,18 @@ export function StaffPage() {
   const fetchStaff = async () => {
     setIsLoading(true);
     try {
-      // Usamos el endpoint general y filtramos en el frontend, 
-      // o usamos los específicos si existen. Vamos a usar el general
-      const res = await api.get('/users');
-      const filtered = res.data.filter((u: any) => 
-        u.rol.name === 'veterinario' || u.rol.name === 'recepcionista'
-      );
-      setStaff(filtered);
+      const [vetsRes, recsRes, adminsRes] = await Promise.all([
+        getVeterinarios().catch(() => ({ data: [] })),
+        getRecepcionistas().catch(() => ({ data: [] })),
+        getAdmins().catch(() => ({ data: [] }))
+      ]);
+      
+      const allStaff = [
+        ...vetsRes.data,
+        ...recsRes.data,
+        ...adminsRes.data
+      ];
+      setStaff(allStaff);
     } catch (error) {
       console.error('Error fetching staff:', error);
     } finally {
@@ -43,7 +51,7 @@ export function StaffPage() {
     setIsSubmitting(true);
     
     try {
-      await api.post('/users/register', formData);
+      await register(formData);
       notify('success', 'Personal Creado', 'La cuenta ha sido creada exitosamente.');
       setIsFormOpen(false);
       setFormData({ username: '', email: '', password: '', rolId: 'veterinario' });
@@ -67,7 +75,7 @@ export function StaffPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Gestión de Personal</h1>
-          <p className="text-slate-500">Creación de cuentas para Veterinarios y Recepcionistas.</p>
+          <p className="text-slate-500">Creación de cuentas para Veterinarios, Recepcionistas y Administradores.</p>
         </div>
         <button 
           onClick={() => setIsFormOpen(true)}
@@ -136,7 +144,7 @@ export function StaffPage() {
           <Shield size={48} className="mx-auto mb-4 text-[#A8DADC]" />
           <h3 className="text-lg font-bold text-[#0A2540] mb-2">Sin personal registrado</h3>
           <p className="max-w-md mx-auto text-sm">
-            Aún no hay veterinarios ni recepcionistas en el sistema. 
+            Aún no hay usuarios en el sistema. 
             Usa el botón superior para agregar nuevos miembros al equipo.
           </p>
         </div>
@@ -192,9 +200,10 @@ export function StaffPage() {
                 >
                   <option value="veterinario">Veterinario (Atención Médica)</option>
                   <option value="recepcionista">Recepcionista (Gestión de Citas)</option>
+                  <option value="admin">Administrador (Control Total)</option>
                 </select>
                 <p className="text-xs text-slate-500 mt-2">
-                  * Limitado a roles operativos. No es posible asignar roles de Administrador o Propietario.
+                  * Seleccione el rol adecuado para otorgar los permisos en el sistema.
                 </p>
               </div>
 

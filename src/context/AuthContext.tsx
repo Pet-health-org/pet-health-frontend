@@ -24,8 +24,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Time for inactivity logout (e.g., 15 minutes)
-const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+// Time for inactivity logout (30 minutes)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {

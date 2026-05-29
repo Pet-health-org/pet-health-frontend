@@ -27,20 +27,33 @@ function App() {
           
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
+              {/* Rutas compartidas por todos */}
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/appointments" element={<AppointmentsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               
-              {/* Feature routes */}
-              <Route path="/owners" element={<OwnersPage />} />
-              <Route path="/owners/:id" element={<OwnerProfilePage />} />
-              <Route path="/staff" element={<StaffPage />} />
+              {/* Rutas Recepcionista y Admin */}
+              <Route element={<ProtectedRoute allowedRoles={['recepcionista', 'admin']} />}>
+                <Route path="/owners" element={<OwnersPage />} />
+                <Route path="/owners/:id" element={<OwnerProfilePage />} />
+                <Route path="/inventory" element={<InventoryPage />} />
+              </Route>
+
+              {/* Rutas Veterinario y Admin */}
+              <Route element={<ProtectedRoute allowedRoles={['veterinario', 'admin']} />}>
+                <Route path="/clinical-history" element={<ClinicalHistoryPage />} />
+                <Route path="/vaccinations" element={<VaccinationPage />} />
+              </Route>
+
+              {/* Rutas Mascotas (Compartida por todos) */}
               <Route path="/pets" element={<PetsPage />} />
               <Route path="/pets/:id" element={<PetProfilePage />} />
-              <Route path="/appointments" element={<AppointmentsPage />} />
-              <Route path="/clinical-history" element={<ClinicalHistoryPage />} />
-              <Route path="/vaccinations" element={<VaccinationPage />} />
-              <Route path="/inventory" element={<InventoryPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
+
+              {/* Rutas Solo Admin */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/staff" element={<StaffPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+              </Route>
             </Route>
           </Route>
           

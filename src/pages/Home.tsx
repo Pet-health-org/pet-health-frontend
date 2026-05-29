@@ -74,8 +74,11 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       
-      const message = error.response?.data?.message || 'Credenciales incorrectas.';
-      notify('error', 'Error de acceso', `${message} Intento ${newAttempts}/3`);
+      if (newAttempts >= 3) {
+        notify('error', 'Acceso Bloqueado', 'Por seguridad, el acceso ha sido bloqueado tras 3 intentos fallidos.');
+      } else {
+        notify('error', 'Error de acceso', `Credenciales incorrectas. Intento ${newAttempts}/3`);
+      }
     } finally {
       setIsSubmitting(false);
     }

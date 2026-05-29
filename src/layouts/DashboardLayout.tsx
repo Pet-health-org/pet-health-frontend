@@ -1,4 +1,12 @@
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+
+type MenuItem = {
+  path: string;
+  label: string;
+  icon: any;
+  badge?: number;
+};
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
@@ -12,14 +20,33 @@ import {
   BarChart3,
   LogOut,
 } from 'lucide-react';
-import { OwnerSearch } from '../features/owners/components/OwnerSearch';
+import { GlobalSearch } from '../components/GlobalSearch';
 
 export function DashboardLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
 
-  const getMenuItems = () => {
-    const baseItems = [
+  const [lowStockCount, setLowStockCount] = useState(0);
+
+  useEffect(() => {
+    const fetchLowStock = async () => {
+      // Solo admins y recepcionistas ven inventario en su menú
+      if (user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') {
+        try {
+          // Import dynamic to avoid top-level cyclic issues if any, or just direct import
+          const { findBajoStock } = await import('../services/inventario.service');
+          const res = await findBajoStock();
+          setLowStockCount(res.data.length);
+        } catch (e) {
+          console.error('Error fetching low stock for badge:', e);
+        }
+      }
+    };
+    fetchLowStock();
+  }, [user]);
+
+  const getMenuItems = (): MenuItem[] => {
+    const baseItems: MenuItem[] = [
       { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/appointments', label: 'Citas', icon: Calendar },
       { path: '/notifications', label: 'Notificaciones', icon: Bell },
@@ -34,7 +61,7 @@ export function DashboardLayout() {
         { path: '/pets', label: 'Mascotas', icon: Dog },
         { path: '/clinical-history', label: 'Historial Clínico', icon: FileText },
         { path: '/vaccinations', label: 'Vacunas', icon: Syringe },
-        { path: '/inventory', label: 'Inventario', icon: Package },
+        { path: '/inventory', label: 'Inventario', icon: Package, badge: lowStockCount },
         { path: '/reports', label: 'Reportes', icon: BarChart3 },
       ];
     }
@@ -53,7 +80,7 @@ export function DashboardLayout() {
         ...baseItems,
         { path: '/owners', label: 'Propietarios', icon: Users },
         { path: '/pets', label: 'Mascotas', icon: Dog },
-        { path: '/inventory', label: 'Inventario', icon: Package },
+        { path: '/inventory', label: 'Inventario', icon: Package, badge: lowStockCount },
       ];
     }
 
@@ -91,16 +118,24 @@ export function DashboardLayout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${isActive
+                className={`group flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-200 ${isActive
                   ? 'bg-[#E0F2F1] text-[#0A2540] font-semibold shadow-sm'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A2540]'
                   }`}
               >
-                <Icon
-                  size={20}
-                  className={isActive ? 'text-[#0A2540]' : 'text-slate-400 group-hover:text-slate-500'}
-                />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    size={20}
+                    className={isActive ? 'text-[#0A2540]' : 'text-slate-400 group-hover:text-slate-500'}
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {/* Badge Render */}
+                {item.badge ? (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
@@ -125,7 +160,7 @@ export function DashboardLayout() {
 
             {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') && (
               <div className="flex-1 max-w-lg hidden sm:block">
-                <OwnerSearch />
+                <GlobalSearch />
               </div>
             )}
           </div>
