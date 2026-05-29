@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Dog, Cat, Bird, HelpCircle, Activity, Info, Calendar, User, FileText, Syringe, Phone, Mail, ShieldAlert, ShieldCheck } from 'lucide-react';
-import { getMascotaById } from '../../../services/mascotas.service';
-import { getPropietarioById } from '../../../services/propietarios.service';
-import { getHistoriasClinicasByMascota } from '../../../services/historias-clinicas.service';
-import { getVacunasByMascota } from '../../../services/vacunas.service';
+import { findOne as getMascotaById } from '../../../services/mascota.service';
+import { findOne as getPropietarioById } from '../../../services/propietario.service';
+import { findByMascota as getHistoriasClinicasByMascota } from '../../../services/historia-clinica.service';
+import { findAll as getVacunasAll } from '../../../services/vacuna.service';
 
 export function PetProfilePage() {
   const { id } = useParams();
@@ -23,7 +23,7 @@ export function PetProfilePage() {
         const [petRes, historyRes, vacunasRes] = await Promise.all([
           getMascotaById(id as string),
           getHistoriasClinicasByMascota(id as string).catch(() => ({ data: [] })),
-          getVacunasByMascota(id as string).catch(() => ({ data: [] }))
+          getVacunasAll().catch(() => ({ data: [] })) // Mocking because backend lacks findByMascota
         ]);
 
         const petData = petRes.data;

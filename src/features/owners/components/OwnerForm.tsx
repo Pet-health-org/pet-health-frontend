@@ -98,7 +98,9 @@ export function OwnerForm({ owner, onClose, onSubmit, isSubmitting }: OwnerFormP
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-700">Número de Identificación *</label>
               <input 
-                type="text" 
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className={`w-full px-4 py-2 border ${errors.identification ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none transition-all`}
                 value={formData.identification}
                 onChange={(e) => {
