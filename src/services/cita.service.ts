@@ -7,3 +7,8 @@ export const findByVeterinario = (veterinarioId: any) => api.get(`/citas/veterin
 export const findOne = (id: any) => api.get(`/citas/${id}`);
 export const update = (id: any, data: any) => api.patch(`/citas/${id}`, data);
 export const remove = (id: any) => api.delete(`/citas/${id}`);
+
+export const getCitas = findAll;
+export const createCita = create;
+export const updateCita = update;
+export const deleteCita = remove;

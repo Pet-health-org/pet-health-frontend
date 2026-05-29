@@ -6,3 +6,7 @@ export const findByMascota = (mascotaId: any) => api.get(`/historias-clinicas/ma
 export const findOne = (id: any) => api.get(`/historias-clinicas/${id}`);
 export const update = (id: any, data: any) => api.patch(`/historias-clinicas/${id}`, data);
 export const remove = (id: any) => api.delete(`/historias-clinicas/${id}`);
+
+export const getHistoriasClinicas = findAll;
+export const createHistoriaClinica = create;
+export const getHistoriasClinicasByMascota = findByMascota;
