@@ -12,9 +12,8 @@ export function usePets() {
       const response = await findAll();
       const mappedPets: Pet[] = response.data.map((p: any) => {
         // Generar un birthDate aproximado basado en la edad para que el UI funcione
-        const birthDate = new Date();
-        birthDate.setFullYear(birthDate.getFullYear() - (p.edad || 0));
-        
+        const birthDate = p.birthDate || new Date(new Date().setFullYear(new Date().getFullYear() - (p.edad || 0))).toISOString().split('T')[0];
+
         // Capitalize especie para que los íconos de la UI (PetList) coincidan ('Perro', 'Gato', etc)
         const especieName = p.especie ? p.especie.charAt(0).toUpperCase() + p.especie.slice(1) : 'Desconocida';
 
@@ -26,10 +25,11 @@ export function usePets() {
           breedId: p.razaId,
           breed: p.raza?.nombre || 'Desconocida',
           ownerId: p.propietarioId,
-          birthDate: birthDate.toISOString(),
+          birthDate: birthDate,
           sex: p.sexo,
           color: p.color,
           weight: p.peso,
+          observations: p.observaciones,
           registrationDate: p.createdAt
         };
       });
@@ -70,13 +70,14 @@ export function usePets() {
         nombre: petData.name,
         especie: especieEnum,
         razaId: petData.breedId === 'otro' ? undefined : petData.breedId,
-        edad: edadCalculada,
+        birthDate: petData.birthDate,
         sexo: petData.sex,
-        color: petData.color || 'Desconocido',
+        color: petData.color || undefined,
         peso: Number(petData.weight) || 0.1,
         propietarioId: petData.ownerId,
+        observaciones: petData.observations || undefined,
       };
-      
+
       const response = await create(payload);
       await fetchPets();
       return response.data;
@@ -98,13 +99,9 @@ export function usePets() {
       if (petData.color) payload.color = petData.color;
       if (petData.weight !== undefined) payload.peso = Number(petData.weight);
       if (petData.ownerId) payload.propietarioId = petData.ownerId;
-      
-      if (petData.birthDate) {
-        const bd = new Date(petData.birthDate);
-        const ageDifMs = Date.now() - bd.getTime();
-        const ageDate = new Date(ageDifMs);
-        payload.edad = Math.abs(ageDate.getUTCFullYear() - 1970);
-      }
+
+      if (petData.birthDate) payload.birthDate = petData.birthDate;
+      if (petData.observations) payload.observaciones = petData.observations;
 
       if (petData.speciesName) {
         const nameLower = petData.speciesName.toLowerCase();

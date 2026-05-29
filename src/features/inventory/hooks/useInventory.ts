@@ -1,6 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
-import { InventoryItem, InventoryMovement } from '../types';
-import { getInventarios, createInventario, updateInventario as apiUpdateInventario, deleteInventario as apiDeleteInventario } from '../../../services/inventario.service';
+import { useState, useCallback, useEffect } from "react";
+import { InventoryItem, InventoryMovement } from "../types";
+import {
+  getInventarios,
+  createInventario,
+  updateInventario as apiUpdateInventario,
+  deleteInventario as apiDeleteInventario,
+} from "../../../services/inventario.service";
 
 export function useInventory() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -13,29 +18,29 @@ export function useInventory() {
       const response = await getInventarios();
       const mappedItems: InventoryItem[] = response.data.map((item: any) => ({
         id: item.id,
-        code: item.id,
+        code: item.codigo || item.id,
         name: item.nombreProducto,
-        description: '',
+        description: item.descripcion || "",
         category: item.tipo
-          ? item.tipo.toLowerCase().includes('vacuna')
-            ? 'Vacuna'
-            : item.tipo.toLowerCase().includes('med')
-              ? 'Medicamento'
-              : 'Insumo'
-          : 'Insumo',
-        presentation: '',
-        unit: '',
+          ? item.tipo.toLowerCase().includes("vacuna")
+            ? "Vacuna"
+            : item.tipo.toLowerCase().includes("med")
+              ? "Medicamento"
+              : "Insumo"
+          : "Insumo",
+        presentation: item.presentacion || "",
+        unit: item.unidadMedida || "",
         stock: item.stockActual,
         minStock: item.stockMinimo,
-        expiryDate: item.fechaVencimiento || '',
-        provider: item.proveedor?.nombreEmpresa || '',
-        registrationDate: item.createdAt || '',
+        expiryDate: item.fechaVencimiento || "",
+        provider: item.proveedor?.nombreEmpresa || "",
+        registrationDate: item.createdAt || "",
         price: item.precioUnitario,
         providerId: item.proveedorId,
       }));
       setItems(mappedItems);
     } catch (error) {
-      console.error('Error fetching inventory:', error);
+      console.error("Error fetching inventory:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,71 +50,89 @@ export function useInventory() {
     fetchItems();
   }, [fetchItems]);
 
-  const addItem = useCallback(async (data: Omit<InventoryItem, 'id' | 'registrationDate'>) => {
-    setIsLoading(true);
-    try {
-      await createInventario(data);
-      await fetchItems();
-    } catch (error) {
-      console.error('Error adding inventory item:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchItems]);
+  const addItem = useCallback(
+    async (data: Omit<InventoryItem, "id" | "registrationDate">) => {
+      setIsLoading(true);
+      try {
+        await createInventario(data);
+        await fetchItems();
+      } catch (error) {
+        console.error("Error adding inventory item:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetchItems],
+  );
 
-  const recordMovement = useCallback(async (itemId: string, type: 'Entrada' | 'Salida', quantity: number, reason: string) => {
-    const item = items.find(i => i.id === itemId);
-    if (!item) return;
+  const recordMovement = useCallback(
+    async (
+      itemId: string,
+      type: "Entrada" | "Salida",
+      quantity: number,
+      reason: string,
+    ) => {
+      const item = items.find((i) => i.id === itemId);
+      if (!item) return;
 
-    const newStock = type === 'Entrada' ? item.stock + quantity : item.stock - quantity;
-    setIsLoading(true);
-    try {
-      await apiUpdateInventario(itemId, { stock: newStock });
-      await fetchItems();
+      const newStock =
+        type === "Entrada" ? item.stock + quantity : item.stock - quantity;
+      setIsLoading(true);
+      try {
+        await apiUpdateInventario(itemId, { stock: newStock });
+        await fetchItems();
 
-      const newMovement: InventoryMovement = {
-        id: Math.random().toString(36).substr(2, 5),
-        itemId,
-        type,
-        quantity,
-        reason,
-        date: new Date().toISOString()
-      };
-      setMovements(prev => [newMovement, ...prev]);
-    } catch (error) {
-      console.error('Error recording movement:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [items, fetchItems]);
+        const newMovement: InventoryMovement = {
+          id: Math.random().toString(36).substr(2, 5),
+          itemId,
+          type,
+          quantity,
+          reason,
+          date: new Date().toISOString(),
+        };
+        setMovements((prev) => [newMovement, ...prev]);
+      } catch (error) {
+        console.error("Error recording movement:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [items, fetchItems],
+  );
 
   const getLowStockItems = useCallback(() => {
-    return items.filter(item => item.stock <= item.minStock);
+    return items.filter((item) => item.stock <= item.minStock);
   }, [items]);
 
-  const updateItem = useCallback(async (id: string, data: any) => {
-    setIsLoading(true);
-    try {
-      await apiUpdateInventario(id, data);
-      await fetchItems();
-    } catch (error) {
-      console.error('Error updating item:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchItems]);
+  const updateItem = useCallback(
+    async (id: string, data: any) => {
+      setIsLoading(true);
+      try {
+        await apiUpdateInventario(id, data);
+        await fetchItems();
+      } catch (error) {
+        console.error("Error updating item:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetchItems],
+  );
 
-  const deleteItem = useCallback(async (id: string) => {
-    setIsLoading(true);
-    try {
-      await apiDeleteInventario(id);
-      await fetchItems();
-    } catch (error) {
-      console.error('Error deleting item:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchItems]);
+  const deleteItem = useCallback(
+    async (id: string) => {
+      setIsLoading(true);
+      try {
+        await apiDeleteInventario(id);
+        await fetchItems();
+      } catch (error) {
+        console.error("Error deleting item:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetchItems],
+  );
 
   return {
     items,
@@ -120,6 +143,6 @@ export function useInventory() {
     getLowStockItems,
     updateItem,
     deleteItem,
-    refresh: fetchItems
+    refresh: fetchItems,
   };
 }
