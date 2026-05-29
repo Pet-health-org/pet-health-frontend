@@ -5,6 +5,7 @@ import { getCitas } from '../services/cita.service';
 import { getVacunas } from '../services/vacuna.service';
 import { getInventarios } from '../services/inventario.service';
 import { DevelopmentAlert } from '../components/DevelopmentAlert';
+import { LowStockAlerts } from '../features/inventory/components/LowStockAlerts';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -21,17 +22,30 @@ export function Dashboard() {
       try {
         const citasRes = await getCitas();
         setAppointments(citasRes.data.length);
-        // Get next 3 upcoming appointments
-        const sorted = [...citasRes.data].sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const mappedCitas = citasRes.data.map((a: any) => {
+          const dateObj = new Date(a.fechaHora);
+          return {
+            ...a,
+            date: a.fechaHora, // useful for sorting
+            time: `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`
+          };
+        });
+        const sorted = mappedCitas.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setRecentAppointments(sorted.slice(0, 3));
 
         const vacunasRes = await getVacunas();
         setPendingVaccines(vacunasRes.data.length);
 
         const stockRes = await getInventarios();
-        const low = stockRes.data.filter((item: any) => item.stock <= item.minStock);
+        const low = stockRes.data.map((item: any) => ({
+          ...item,
+          name: item.nombreProducto || 'Producto sin nombre',
+          stock: item.stockActual || 0,
+          minStock: item.stockMinimo || 0,
+          unit: 'unidades'
+        })).filter((item: any) => item.stock <= item.minStock);
+        
         setLowStock(low.length);
-        setLowStockItems(low.slice(0, 2));
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -93,8 +107,15 @@ export function Dashboard() {
         />
       </div>
 
+      {/* Full width Low Stock Alerts for Admin and Recepcionista */}
+      {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') && (
+        <div className="mt-8">
+          <LowStockAlerts />
+        </div>
+      )}
+
       {/* Additional dashboard content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-1 gap-6 mt-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-[#0A2540] mb-4">Próximas Citas</h2>
           <div className="space-y-4">
@@ -117,25 +138,6 @@ export function Dashboard() {
               ))
             ) : (
               <p className="text-sm text-slate-400 italic text-center py-8">No hay citas programadas.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h2 className="text-lg font-bold text-[#0A2540] mb-4">Alertas de Inventario</h2>
-          <div className="space-y-4">
-            {lowStockItems.length > 0 ? (
-              lowStockItems.map((item) => (
-                <div key={item.id} className="flex items-center p-3 bg-red-50 text-red-800 rounded-lg border border-red-100">
-                  <AlertTriangle size={20} className="mr-3 text-red-500" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-sm text-red-600/80">Quedan {item.stock} {item.unit} (Mínimo: {item.minStock})</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-400 italic text-center py-8">Todo el inventario está en niveles óptimos.</p>
             )}
           </div>
         </div>
