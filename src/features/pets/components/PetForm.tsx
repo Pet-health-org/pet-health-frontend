@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Search } from 'lucide-react';
 import { Pet } from '../types';
 import { Owner } from '../../owners/types';
-import { getEspecies } from '../../../services/especies.service';
-import { getRazasByEspecie } from '../../../services/razas.service';
+import { findAll as getEspecies } from '../../../services/especie.service';
+import { findByEspecie as getRazasByEspecie } from '../../../services/raza.service';
 
 interface PetFormProps {
   pet?: Pet;

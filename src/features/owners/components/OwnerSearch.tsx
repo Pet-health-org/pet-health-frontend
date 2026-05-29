@@ -1,63 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, User, Phone, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Loader2 } from 'lucide-react';
-import { getPropietarios } from '../../../services/propietarios.service';
+import { useOwners } from '../hooks/useOwners';
 import { Owner } from '../types';
 
 export function OwnerSearch() {
+  const { owners, isLoading } = useOwners();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Owner[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (searchTerm.length < 3) {
+    if (searchTerm.length >= 3) {
+      const lowerTerm = searchTerm.toLowerCase();
+      const filtered = owners.filter(o => 
+        o.firstName.toLowerCase().includes(lowerTerm) ||
+        o.lastName.toLowerCase().includes(lowerTerm) ||
+        o.identification.includes(lowerTerm) ||
+        o.phone.includes(lowerTerm)
+      );
+      setResults(filtered);
+      setIsOpen(true);
+    } else {
       setResults([]);
       setIsOpen(false);
-      return;
     }
-
-    const timer = setTimeout(async () => {
-      setIsLoading(true);
-      setIsOpen(true);
-      try {
-        const response = await getPropietarios();
-        const owners = response.data.map((user: any) => ({
-          id: user.id,
-          firstName: user.username,
-          lastName: '',
-          identification: user.identification || 'N/A',
-          email: user.email,
-          phone: user.phone || 'N/A',
-        }));
-
-        const filtered = owners.filter((o: Owner) => 
-          `${o.firstName} ${o.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          o.identification.includes(searchTerm) ||
-          o.phone.includes(searchTerm)
-        );
-        setResults(filtered);
-      } catch (error) {
-        console.error('Error searching owners:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 500); // 500ms debounce (< 2s)
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, owners]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [wrapperRef]);
+  }, [dropdownRef]);
 
   const handleSelect = (id: string) => {
     setIsOpen(false);
@@ -66,52 +46,56 @@ export function OwnerSearch() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-md">
+    <div className="relative w-full max-w-md z-40" ref={dropdownRef}>
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-slate-400" />
-        </div>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
         <input
           type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#A8DADC] focus:border-[#A8DADC] sm:text-sm transition-all"
-          placeholder="Buscar propietario (Mínimo 3 caracteres)..."
+          placeholder="Buscar propietario (nombre, doc, tel)..."
+          className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A8DADC] focus:border-transparent shadow-sm transition-all text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onClick={() => {
+          onFocus={() => {
             if (searchTerm.length >= 3) setIsOpen(true);
           }}
         />
         {isLoading && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <Loader2 className="h-5 w-5 text-[#A8DADC] animate-spin" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="w-4 h-4 border-2 border-slate-300 border-t-[#0A2540] rounded-full animate-spin"></div>
           </div>
         )}
       </div>
 
-      {isOpen && (
-        <div className="absolute mt-1 w-full bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <ul className="max-h-60 overflow-y-auto">
-            {results.length > 0 ? (
-              results.map((owner) => (
-                <li 
+      {isOpen && searchTerm.length >= 3 && (
+        <div className="absolute mt-2 w-full bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+          {results.length > 0 ? (
+            <div className="py-2">
+              {results.map((owner) => (
+                <div 
                   key={owner.id}
                   className="px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
                   onClick={() => handleSelect(owner.id)}
                 >
-                  <div className="font-medium text-slate-800">{owner.firstName} {owner.lastName}</div>
-                  <div className="flex gap-3 mt-1 text-xs text-slate-500">
-                    <span>ID: {owner.identification}</span>
-                    <span>•</span>
-                    <span>Tel: {owner.phone}</span>
+                  <div className="flex items-center gap-2 font-medium text-[#0A2540] mb-1">
+                    <User size={14} className="text-slate-400" />
+                    {owner.firstName} {owner.lastName}
                   </div>
-                </li>
-              ))
-            ) : !isLoading ? (
-              <li className="px-4 py-8 text-center text-slate-500 text-sm">
-                No se encontraron resultados
-              </li>
-            ) : null}
-          </ul>
+                  <div className="flex items-center gap-4 text-xs text-slate-500 pl-5">
+                    <div className="flex items-center gap-1">
+                      <Hash size={12} /> {owner.identification}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Phone size={12} /> {owner.phone}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-sm text-slate-500">
+              No se encontraron resultados
+            </div>
+          )}
         </div>
       )}
     </div>

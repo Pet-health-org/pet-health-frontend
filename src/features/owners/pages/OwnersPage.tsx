@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { OwnerList } from '../components/OwnerList';
 import { OwnerForm } from '../components/OwnerForm';
+import { OwnerSearch } from '../components/OwnerSearch';
 import { useOwners } from '../hooks/useOwners';
 import { useNotify } from '../../../context/NotificationContext';
 import { Owner } from '../types';
@@ -89,6 +90,10 @@ export function OwnersPage() {
       <div>
         <h1 className="text-2xl font-bold text-[#0A2540]">Propietarios</h1>
         <p className="text-slate-500">Gestión de dueños de mascotas registrados en la clínica.</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <OwnerSearch />
       </div>
 
       <OwnerList 

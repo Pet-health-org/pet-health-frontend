@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getPropietarios, createPropietario, updatePropietario, deletePropietario } from '../../../services/propietarios.service';
+import { findAll, create, update, remove } from '../../../services/propietario.service';
 import { Owner } from '../types';
 
 export function useOwners() {
@@ -9,7 +9,7 @@ export function useOwners() {
   const fetchOwners = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getPropietarios();
+      const response = await findAll();
       const mappedOwners: Owner[] = response.data.map((user: any) => {
         // Split nombreCompleto into firstName and lastName if possible
         const nameParts = (user.nombreCompleto || '').split(' ');
@@ -43,7 +43,7 @@ export function useOwners() {
     setIsLoading(true);
     try {
       // Prepare data for CreatePropietarioDto
-      await createPropietario({
+      await create({
         username: ownerData.email.split('@')[0], // Generate username from email
         email: ownerData.email,
         password: 'Password123!', // Default password
@@ -75,7 +75,7 @@ export function useOwners() {
       if (ownerData.address) payload.direccion = ownerData.address;
       if ((ownerData as any).notes) payload.notas = (ownerData as any).notes;
 
-      await updatePropietario(id, payload);
+      await update(id, payload);
       await fetchOwners();
     } catch (error) {
       console.error('Error updating owner:', error);
@@ -88,7 +88,7 @@ export function useOwners() {
   const deleteOwner = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      await deletePropietario(id);
+      await remove(id);
       setOwners(prev => prev.filter(o => o.id !== id));
     } catch (error) {
       console.error('Error deleting owner:', error);
