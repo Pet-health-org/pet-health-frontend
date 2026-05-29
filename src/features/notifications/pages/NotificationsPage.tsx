@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, CheckCircle, XCircle, Clock, Settings, Save } from 'lucide-react';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
-import { getNotificaciones } from '../../../services/notificaciones.service';
+import { getNotificaciones } from '../../../services/notificacion.service';
 
 interface NotificationLog {
   id: string;

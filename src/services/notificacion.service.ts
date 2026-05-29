@@ -7,3 +7,5 @@ export const findByEstado = (estado: any) => api.get(`/notificaciones/estado/${e
 export const findOne = (id: any) => api.get(`/notificaciones/${id}`);
 export const update = (id: any, data: any) => api.patch(`/notificaciones/${id}`, data);
 export const remove = (id: any) => api.delete(`/notificaciones/${id}`);
+
+export const getNotificaciones = findAll;

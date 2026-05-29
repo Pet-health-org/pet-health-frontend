@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { VaccinationRecord, ALERT_DAYS_THRESHOLD } from '../types';
-import { getVacunas, createVacuna } from '../../../services/vacunas.service';
+import { getVacunas, createVacuna } from '../../../services/vacuna.service';
 
 export function useVaccines() {
   const [records, setRecords] = useState<VaccinationRecord[]>([]);

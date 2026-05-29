@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, AlertTriangle } from 'lucide-react';
 import { ItemCategory } from '../types';
-import { getProveedores } from '../../../services/proveedores.service';
+import { getProveedores } from '../../../services/proveedor.service';
 
 interface InventoryFormProps {
   onClose: () => void;

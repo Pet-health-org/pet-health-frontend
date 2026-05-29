@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, PieChart, TrendingUp, Download } from 'lucide-react';
 import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
-import { getMascotas } from '../../../services/mascotas.service';
-import { getHistoriasClinicas } from '../../../services/historias-clinicas.service';
-import { getVacunas } from '../../../services/vacunas.service';
+import { getMascotas } from '../../../services/mascota.service';
+import { getHistoriasClinicas } from '../../../services/historia-clinica.service';
+import { getVacunas } from '../../../services/vacuna.service';
 
 export function ReportsPage() {
   const [stats, setStats] = useState({

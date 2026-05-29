@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Phone, MapPin, CreditCard } from 'lucide-react';
-import { getPropietarioById } from '../../../services/propietarios.service';
+import { getPropietarioById } from '../../../services/propietario.service';
 import { Owner } from '../types';
 
 export function OwnerProfilePage() {

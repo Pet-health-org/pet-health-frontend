@@ -6,3 +6,6 @@ export const findByPropietario = (propietarioId: any) => api.get(`/mascotas/prop
 export const findOne = (id: any) => api.get(`/mascotas/${id}`);
 export const update = (id: any, data: any) => api.patch(`/mascotas/${id}`, data);
 export const remove = (id: any) => api.delete(`/mascotas/${id}`);
+
+export const getMascotas = findAll;
+export const getMascotaById = findOne;

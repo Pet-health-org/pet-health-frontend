@@ -4,3 +4,5 @@ export const getDisponibilidadGeneral = () => api.get(`/veterinarios/disponibili
 export const getDisponibilidadVeterinario = (id: any) => api.get(`/veterinarios/${id}/disponibilidad`);
 export const findAll = () => api.get(`/veterinarios`);
 export const findOne = (id: any) => api.get(`/veterinarios/${id}`);
+
+export const getVeterinarios = findAll;

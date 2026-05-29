@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getVeterinarios } from '../../../services/veterinarios.service';
+import { getVeterinarios } from '../../../services/veterinario.service';
 import { AppointmentCalendar } from '../components/AppointmentCalendar';
 import { AppointmentForm } from '../components/AppointmentForm';
 import { useAppointments } from '../hooks/useAppointments';

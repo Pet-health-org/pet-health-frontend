@@ -3,7 +3,7 @@ import { X, Calendar } from 'lucide-react';
 import { VACCINE_SCHEMES } from '../types';
 import { Pet } from '../../pets/types';
 import { useInventory } from '../../inventory/hooks/useInventory';
-import { getHistoriasClinicasByMascota } from '../../../services/historias-clinicas.service';
+import { getHistoriasClinicasByMascota } from '../../../services/historia-clinica.service';
 
 interface VaccineFormProps {
   pet: Pet;
