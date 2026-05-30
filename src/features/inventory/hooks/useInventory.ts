@@ -79,7 +79,7 @@ export function useInventory() {
         type === "Entrada" ? item.stock + quantity : item.stock - quantity;
       setIsLoading(true);
       try {
-        await apiUpdateInventario(itemId, { stock: newStock });
+        await apiUpdateInventario(itemId, { stockActual: newStock });
         await fetchItems();
 
         const newMovement: InventoryMovement = {
