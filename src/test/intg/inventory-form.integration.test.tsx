@@ -7,9 +7,9 @@ const proveedorServiceMock = vi.hoisted(() => ({
   getProveedores: vi.fn(),
 }));
 
-vi.mock("../../src/services/proveedor.service", () => proveedorServiceMock);
+vi.mock("../../services/proveedor.service", () => proveedorServiceMock);
 
-import { InventoryForm } from "../../src/features/inventory/components/InventoryForm";
+import { InventoryForm } from "../../features/inventory/components/InventoryForm";
 
 describe("Integración frontend - formulario de inventario", () => {
   beforeEach(() => {

@@ -94,19 +94,21 @@ export function PetForm({
 
   // Load Initial Data
   useEffect(() => {
-    if (pet) {
-      // Find the enum-compatible string for the pet's species
-      let speciesVal = pet.speciesId || "";
-      if (pet.species) {
-        const lowerName = pet.species.toLowerCase();
-        if (lowerName.includes("perro")) speciesVal = "perro";
-        else if (lowerName.includes("gato")) speciesVal = "gato";
-        else if (lowerName.includes("ave")) speciesVal = "ave";
-        else speciesVal = "otro";
+    if (pet && especies.length > 0) {
+      let speciesId = pet.speciesId || "";
+
+      if (!speciesId && pet.species) {
+        const speciesName = pet.species.toLowerCase();
+        const matched = especies.find((e) =>
+          e.nombre.toLowerCase() === speciesName ||
+          e.nombre.toLowerCase().includes(speciesName) ||
+          speciesName.includes(e.nombre.toLowerCase())
+        );
+        if (matched) speciesId = matched.id;
       }
 
       setFormData({
-        speciesId: speciesVal,
+        speciesId,
         breedId: pet.breedId || "",
         customSpecies: pet.customSpecies || "",
         customBreed: pet.customBreed || "",
@@ -121,7 +123,7 @@ export function PetForm({
       const owner = owners.find((o) => o.id === pet.ownerId);
       if (owner) setOwnerSearch(`${owner.firstName} ${owner.lastName}`);
     }
-  }, [pet, owners]);
+  }, [pet, owners, especies]);
 
   // Owner search logic
   useEffect(() => {
@@ -181,7 +183,9 @@ export function PetForm({
       newErrors.customSpecies = "Especifique la especie";
     }
 
-    if (!formData.breedId) newErrors.breedId = "La raza es obligatoria";
+    if (formData.speciesId && formData.speciesId !== "otro" && !formData.breedId) {
+      newErrors.breedId = "La raza es obligatoria";
+    }
     if (formData.breedId === "otro" && !formData.customBreed) {
       newErrors.customBreed = "Especifique la raza";
     }

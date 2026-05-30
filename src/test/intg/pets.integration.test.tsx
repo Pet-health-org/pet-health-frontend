@@ -9,9 +9,9 @@ const mascotaServiceMock = vi.hoisted(() => ({
   findByPropietario: vi.fn(),
 }));
 
-vi.mock('../../src/services/mascota.service', () => mascotaServiceMock);
+vi.mock('../../services/mascota.service', () => mascotaServiceMock);
 
-import { usePets } from '../../src/features/pets/hooks/usePets';
+import { usePets } from '../../features/pets/hooks/usePets';
 
 describe('Integración frontend - mascotas', () => {
   beforeEach(() => {

@@ -7,9 +7,9 @@ const historiaServiceMock = vi.hoisted(() => ({
   getHistoriasClinicasByMascota: vi.fn(),
 }));
 
-vi.mock('../../src/services/historia-clinica.service', () => historiaServiceMock);
+vi.mock('../../services/historia-clinica.service', () => historiaServiceMock);
 
-import { useConsultations } from '../../src/features/clinical-history/hooks/useConsultations';
+import { useConsultations } from '../../features/clinical-history/hooks/useConsultations';
 
 describe('Integración frontend - historia clínica', () => {
   beforeEach(() => {
