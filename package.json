@@ -24,7 +24,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run src/test/unit",
-    "test:intg": "vitest run test/intg --environment jsdom"
+    "test:intg": "vitest run src/test/intg --environment jsdom"
   },
   "eslintConfig": {
     "extends": [

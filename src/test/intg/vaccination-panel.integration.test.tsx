@@ -6,9 +6,9 @@ const vacunaServiceMock = vi.hoisted(() => ({
   createVacuna: vi.fn(),
 }));
 
-vi.mock('../../src/services/vacuna.service', () => vacunaServiceMock);
+vi.mock('../../services/vacuna.service', () => vacunaServiceMock);
 
-import { useVaccines } from '../../src/features/vaccinations/hooks/useVaccines';
+import { useVaccines } from '../../features/vaccinations/hooks/useVaccines';
 
 const toIsoInDays = (days: number) => {
   const date = new Date();

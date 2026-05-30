@@ -20,7 +20,7 @@ export function usePets() {
         return {
           id: p.id,
           name: p.nombre,
-          speciesId: '', // Backend no devuelve speciesId
+          speciesId: p.raza?.especie?.id || '',
           species: especieName,
           breedId: p.razaId,
           breed: p.raza?.nombre || 'Desconocida',

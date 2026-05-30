@@ -8,9 +8,9 @@ const citaServiceMock = vi.hoisted(() => ({
   deleteCita: vi.fn(),
 }));
 
-vi.mock('../../src/services/cita.service', () => citaServiceMock);
+vi.mock('../../services/cita.service', () => citaServiceMock);
 
-import { useAppointments } from '../../src/features/appointments/hooks/useAppointments';
+import { useAppointments } from '../../features/appointments/hooks/useAppointments';
 
 describe('Integración frontend - citas', () => {
   beforeEach(() => {
