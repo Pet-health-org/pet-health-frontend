@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { X, Package, AlertTriangle } from "lucide-react";
 import { ItemCategory } from "../types";
-import { getProveedores } from "../../../services/proveedor.service";
+import {
+  create as createProveedor,
+  getProveedores,
+} from "../../../services/proveedor.service";
 
 interface InventoryFormProps {
   onClose: () => void;
@@ -49,12 +52,34 @@ export function InventoryForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isProviderFormOpen, setIsProviderFormOpen] = useState(false);
+  const [isSavingProvider, setIsSavingProvider] = useState(false);
+  const [providerErrors, setProviderErrors] = useState<Record<string, string>>(
+    {},
+  );
+  const [providerData, setProviderData] = useState({
+    nombreEmpresa: "",
+    contacto: "",
+    telefono: "",
+    correo: "",
+    direccion: "",
+    condicionesPago: "",
+  });
+
+  const fetchProviders = async () => {
+    setIsLoadingProviders(true);
+    try {
+      const res = await getProveedores();
+      setProviders(res.data || []);
+    } catch {
+      setProviders([]);
+    } finally {
+      setIsLoadingProviders(false);
+    }
+  };
 
   useEffect(() => {
-    getProveedores()
-      .then((res) => setProviders(res.data || []))
-      .catch(() => setProviders([]))
-      .finally(() => setIsLoadingProviders(false));
+    fetchProviders();
   }, []);
 
   const validate = () => {
@@ -97,6 +122,55 @@ export function InventoryForm({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const validateProvider = () => {
+    const newErrors: Record<string, string> = {};
+    if (!providerData.nombreEmpresa.trim())
+      newErrors.nombreEmpresa = "El nombre de la empresa es requerido";
+    if (!providerData.contacto.trim())
+      newErrors.contacto = "El contacto es requerido";
+    if (!providerData.telefono.trim())
+      newErrors.telefono = "El teléfono es requerido";
+    if (!providerData.correo.trim())
+      newErrors.correo = "El correo es requerido";
+    if (!providerData.direccion.trim())
+      newErrors.direccion = "La dirección es requerida";
+    if (!providerData.condicionesPago.trim())
+      newErrors.condicionesPago = "Las condiciones de pago son requeridas";
+    setProviderErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateProvider = async () => {
+    if (!validateProvider()) return;
+    setIsSavingProvider(true);
+    try {
+      const response = await createProveedor(providerData);
+      await fetchProviders();
+      const newProviderId = response.data?.id;
+      if (newProviderId) {
+        setFormData((prev) => ({ ...prev, proveedorId: newProviderId }));
+      }
+      setProviderData({
+        nombreEmpresa: "",
+        contacto: "",
+        telefono: "",
+        correo: "",
+        direccion: "",
+        condicionesPago: "",
+      });
+      setProviderErrors({});
+      setIsProviderFormOpen(false);
+      if (errors.proveedorId) setErrors({ ...errors, proveedorId: "" });
+    } catch (error: any) {
+      setProviderErrors({
+        general:
+          error.response?.data?.message || "No se pudo crear el proveedor",
+      });
+    } finally {
+      setIsSavingProvider(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,6 +218,7 @@ export function InventoryForm({
               </label>
               <input
                 type="text"
+                aria-label="Código"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.codigo ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.codigo}
                 onChange={(e) => {
@@ -163,6 +238,7 @@ export function InventoryForm({
               </label>
               <input
                 type="text"
+                aria-label="Nombre del Producto"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.name ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.name}
                 onChange={(e) => {
@@ -184,6 +260,7 @@ export function InventoryForm({
                 Categoría *
               </label>
               <select
+                aria-label="Categoría"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
                 value={formData.category}
                 onChange={(e) =>
@@ -204,6 +281,7 @@ export function InventoryForm({
               </label>
               <input
                 type="text"
+                aria-label="Presentación"
                 placeholder="Ej: Caja, Frasco, Blister"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all border-slate-300 focus:ring-2 focus:ring-[#A8DADC]`}
                 value={formData.presentacion}
@@ -219,6 +297,7 @@ export function InventoryForm({
               Descripción
             </label>
             <textarea
+              aria-label="Descripción"
               className={`w-full px-4 py-2 border rounded-lg outline-none transition-all border-slate-300 focus:ring-2 focus:ring-[#A8DADC]`}
               value={formData.descripcion}
               onChange={(e) =>
@@ -233,6 +312,7 @@ export function InventoryForm({
                 Unidad de Medida *
               </label>
               <select
+                aria-label="Unidad de Medida"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.unidadMedida ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.unidadMedida}
                 onChange={(e) => {
@@ -259,6 +339,7 @@ export function InventoryForm({
               </label>
               <input
                 type="number"
+                aria-label="Stock Inicial"
                 min="0"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.stock ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.stock}
@@ -285,6 +366,7 @@ export function InventoryForm({
               </label>
               <input
                 type="number"
+                aria-label="Stock Mínimo"
                 min="0"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.minStock ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.minStock}
@@ -308,6 +390,7 @@ export function InventoryForm({
               </label>
               <input
                 type="date"
+                aria-label="Fecha de Vencimiento"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.expiryDate ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
                 value={formData.expiryDate}
                 onChange={(e) => {
@@ -328,6 +411,7 @@ export function InventoryForm({
               </label>
               <input
                 type="number"
+                aria-label="Precio Unitario"
                 min="0"
                 step="0.01"
                 className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.price ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
@@ -348,12 +432,22 @@ export function InventoryForm({
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-slate-700">
-              Proveedor *
-            </label>
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-semibold text-slate-700">
+                Proveedor *
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsProviderFormOpen((prev) => !prev)}
+                className="text-xs font-bold text-blue-700 hover:text-blue-900"
+              >
+                {isProviderFormOpen ? "Cerrar formulario" : "+ Crear proveedor"}
+              </button>
+            </div>
             <select
-              className={`w-full px-4 py-2 border rounded-lg outline-none transition-all ${errors.proveedorId ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
+              aria-label="Proveedor"
+              className={`w-full px-4 py-2 border rounded-lg outline-none transition-all bg-white ${errors.proveedorId ? "border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
               value={formData.proveedorId}
               onChange={(e) => {
                 setFormData({ ...formData, proveedorId: e.target.value });
@@ -374,11 +468,77 @@ export function InventoryForm({
                 <AlertTriangle size={12} /> {errors.proveedorId}
               </p>
             )}
-            {!isLoadingProviders && providers.length === 0 && (
-              <p className="text-xs text-slate-500">
-                No hay proveedores registrados. Debe crear un proveedor en el
-                sistema antes de agregar inventario.
-              </p>
+
+            {isProviderFormOpen && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t border-slate-200 pt-4">
+                {providerErrors.general && (
+                  <p className="md:col-span-2 text-xs text-red-600 font-semibold">
+                    {providerErrors.general}
+                  </p>
+                )}
+                <ProviderInput
+                  label="Empresa *"
+                  value={providerData.nombreEmpresa}
+                  error={providerErrors.nombreEmpresa}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, nombreEmpresa: value })
+                  }
+                />
+                <ProviderInput
+                  label="Contacto *"
+                  value={providerData.contacto}
+                  error={providerErrors.contacto}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, contacto: value })
+                  }
+                />
+                <ProviderInput
+                  label="Teléfono *"
+                  value={providerData.telefono}
+                  error={providerErrors.telefono}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, telefono: value })
+                  }
+                />
+                <ProviderInput
+                  label="Correo *"
+                  value={providerData.correo}
+                  error={providerErrors.correo}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, correo: value })
+                  }
+                  type="email"
+                />
+                <ProviderInput
+                  label="Dirección *"
+                  value={providerData.direccion}
+                  error={providerErrors.direccion}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, direccion: value })
+                  }
+                />
+                <ProviderInput
+                  label="Condiciones de pago *"
+                  value={providerData.condicionesPago}
+                  error={providerErrors.condicionesPago}
+                  onChange={(value) =>
+                    setProviderData({ ...providerData, condicionesPago: value })
+                  }
+                  placeholder="Ej: Crédito 30 días"
+                />
+                <div className="md:col-span-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleCreateProvider}
+                    disabled={isSavingProvider}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {isSavingProvider
+                      ? "Guardando proveedor..."
+                      : "Guardar proveedor"}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -401,6 +561,38 @@ export function InventoryForm({
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function ProviderInput({
+  label,
+  value,
+  onChange,
+  error,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-semibold text-slate-600">{label}</label>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-3 py-2 border rounded-lg bg-white text-sm outline-none ${error ? "border-red-400 focus:ring-2 focus:ring-red-400" : "border-slate-300 focus:ring-2 focus:ring-[#A8DADC]"}`}
+      />
+      {error && (
+        <p className="text-[10px] text-red-600 font-semibold">{error}</p>
+      )}
     </div>
   );
 }

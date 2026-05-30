@@ -1,25 +1,27 @@
-import { useState, useEffect } from 'react';
-import { getVeterinarios } from '../../../services/veterinario.service';
-import { AppointmentCalendar } from '../components/AppointmentCalendar';
-import { AppointmentForm } from '../components/AppointmentForm';
-import { useAppointments } from '../hooks/useAppointments';
-import { useOwners } from '../../owners/hooks/useOwners';
-import { usePets } from '../../pets/hooks/usePets';
-import { useNotify } from '../../../context/NotificationContext';
-import { Plus, LayoutGrid, List } from 'lucide-react';
-import { DevelopmentAlert } from '../../../components/DevelopmentAlert';
+import { useState, useEffect } from "react";
+import { getVeterinarios } from "../../../services/veterinario.service";
+import { AppointmentCalendar } from "../components/AppointmentCalendar";
+import { AppointmentForm } from "../components/AppointmentForm";
+import { useAppointments } from "../hooks/useAppointments";
+import { useOwners } from "../../owners/hooks/useOwners";
+import { usePets } from "../../pets/hooks/usePets";
+import { useNotify } from "../../../context/NotificationContext";
+import { Plus, LayoutGrid, List } from "lucide-react";
 
 export function AppointmentsPage() {
-  const { appointments, isLoading, addAppointment, updateStatus } = useAppointments();
+  const { appointments, isLoading, addAppointment, updateStatus } =
+    useAppointments();
   const { owners } = useOwners();
   const { pets } = usePets();
   const { notify } = useNotify();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [initialFormData, setInitialFormData] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedVetId, setSelectedVetId] = useState('all');
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [selectedVetId, setSelectedVetId] = useState("all");
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [veterinarians, setVeterinarians] = useState<any[]>([]);
 
   useEffect(() => {
@@ -28,12 +30,11 @@ export function AppointmentsPage() {
         const res = await getVeterinarios();
         setVeterinarians(res.data);
       } catch (error) {
-        console.error('Error fetching veterinarians:', error);
+        console.error("Error fetching veterinarians:", error);
       }
     };
     fetchVets();
   }, []);
-
 
   const handleAdd = (data?: any) => {
     setInitialFormData(data || null);
@@ -41,44 +42,45 @@ export function AppointmentsPage() {
   };
 
   const handleAddAppointment = async (data: any) => {
+    setIsFormOpen(false);
+    setInitialFormData(null);
+    notify("info", "Guardando cita", "Estamos confirmando el agendamiento.");
+
     const result = await addAppointment(data);
     if (result.success) {
-      notify('success', 'Éxito', 'Cita agendada correctamente');
-      setIsFormOpen(false);
+      notify("success", "Éxito", "Cita agendada correctamente");
     } else {
-      notify('error', 'Error', result.message || 'Failed to add appointment.');
+      setInitialFormData(data);
+      setIsFormOpen(true);
+      notify("error", "Error", result.message || "No se pudo agendar la cita.");
     }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <DevelopmentAlert 
-        moduleName="Citas" 
-        variant="info"
-        title="Agenda Médica Sincronizada"
-        customMessage="El calendario de citas está totalmente integrado con la disponibilidad de los veterinarios y los registros de pacientes."
-      />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#0A2540]">Agenda de Citas</h1>
-          <p className="text-slate-500">Gestión de consultas y disponibilidad de veterinarios.</p>
+          <p className="text-slate-500">
+            Gestión de consultas y disponibilidad de veterinarios.
+          </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <div className="bg-white border border-slate-200 rounded-lg p-1 flex">
-            <button 
-              onClick={() => setViewMode('calendar')}
-              className={`p-1.5 rounded ${viewMode === 'calendar' ? 'bg-slate-100 text-[#0A2540]' : 'text-slate-400 hover:text-slate-600'}`}
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`p-1.5 rounded ${viewMode === "calendar" ? "bg-slate-100 text-[#0A2540]" : "text-slate-400 hover:text-slate-600"}`}
             >
               <LayoutGrid size={20} />
             </button>
-            <button 
-              onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-slate-100 text-[#0A2540]' : 'text-slate-400 hover:text-slate-600'}`}
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded ${viewMode === "list" ? "bg-slate-100 text-[#0A2540]" : "text-slate-400 hover:text-slate-600"}`}
             >
               <List size={20} />
             </button>
           </div>
-          <button 
+          <button
             onClick={() => handleAdd()}
             className="flex-1 sm:flex-none px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10"
           >
@@ -88,8 +90,8 @@ export function AppointmentsPage() {
         </div>
       </div>
 
-      {viewMode === 'calendar' ? (
-        <AppointmentCalendar 
+      {viewMode === "calendar" ? (
+        <AppointmentCalendar
           appointments={appointments}
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
@@ -99,13 +101,13 @@ export function AppointmentsPage() {
           onAddClick={handleAdd}
         />
       ) : (
-        <div className="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-500">
-          Vista de lista en desarrollo (Próxima actualización)
+        <div className="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-500">
+          Selecciona la vista de calendario para gestionar las citas.
         </div>
       )}
 
       {isFormOpen && (
-        <AppointmentForm 
+        <AppointmentForm
           owners={owners}
           pets={pets}
           veterinarians={veterinarians}
