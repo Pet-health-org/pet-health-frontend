@@ -21,7 +21,7 @@ const TestComponent = () => {
     <div>
       <div data-testid="auth-status">{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
       {user && <div data-testid="user-name">{user.username}</div>}
-      <button onClick={() => login('fake-token')} data-testid="login-btn">Login</button>
+      <button onClick={() => login('fake-token', 1800)} data-testid="login-btn">Login</button>
       <button onClick={() => logout()} data-testid="logout-btn">Logout</button>
     </div>
   );

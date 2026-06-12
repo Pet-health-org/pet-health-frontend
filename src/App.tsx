@@ -30,7 +30,6 @@ function App() {
               {/* Rutas compartidas por todos */}
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/appointments" element={<AppointmentsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
               
               {/* Rutas Recepcionista y Admin */}
               <Route element={<ProtectedRoute allowedRoles={['recepcionista', 'admin']} />}>
@@ -53,6 +52,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="/staff" element={<StaffPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
             </Route>
           </Route>

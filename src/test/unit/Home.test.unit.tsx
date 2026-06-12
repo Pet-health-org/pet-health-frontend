@@ -82,7 +82,7 @@ describe("Home Component", () => {
 
     // Configurar el mock de authLogin para que sea exitoso
     vi.mocked(authLogin).mockResolvedValueOnce({
-      data: { access_token: "fake-token" },
+      data: { access_token: "fake-token", expires_in: 3600 },
     } as any);
 
     // Encontrar y enviar el form
@@ -99,7 +99,7 @@ describe("Home Component", () => {
       });
 
       // Verificar que useAuth.login fue llamado
-      expect(mockLogin).toHaveBeenCalledWith("fake-token");
+      expect(mockLogin).toHaveBeenCalledWith("fake-token", 3600);
 
       // Verificar notificación de éxito
       expect(mockNotify).toHaveBeenCalledWith(
@@ -113,60 +113,53 @@ describe("Home Component", () => {
     });
   });
 
-  it("debe bloquearse después de 3 intentos fallidos", async () => {
+  it("debe mostrar error de acceso en credenciales incorrectas", async () => {
     renderHome();
     fireEvent.click(screen.getByRole("button", { name: /Entrar al Sistema/i }));
 
-    // Rechazar 3 veces
     vi.mocked(authLogin).mockRejectedValue(new Error("Credenciales inválidas"));
 
     const btnSubmit = screen.getAllByRole("button", {
       name: /Entrar al Sistema/i,
     })[1];
 
-    // Intento 1
     fireEvent.click(btnSubmit);
     await waitFor(() =>
       expect(mockNotify).toHaveBeenCalledWith(
         "error",
         "Error de acceso",
-        "Credenciales incorrectas. Intento 1/3",
+        "Credenciales incorrectas.",
       ),
     );
+  });
 
-    // Intento 2
-    fireEvent.click(btnSubmit);
-    await waitFor(() =>
-      expect(mockNotify).toHaveBeenCalledWith(
-        "error",
-        "Error de acceso",
-        "Credenciales incorrectas. Intento 2/3",
-      ),
-    );
+  it("debe bloquearse al recibir mensaje de cuenta bloqueada del backend", async () => {
+    renderHome();
+    fireEvent.click(screen.getByRole("button", { name: /Entrar al Sistema/i }));
 
-    // Intento 3
+    // Simular error de bloqueo del backend
+    vi.mocked(authLogin).mockRejectedValue({
+      response: {
+        data: { message: "Cuenta bloqueada temporalmente por intentos fallidos." }
+      }
+    });
+
+    const btnSubmit = screen.getAllByRole("button", {
+      name: /Entrar al Sistema/i,
+    })[1];
+
     fireEvent.click(btnSubmit);
     await waitFor(() =>
       expect(mockNotify).toHaveBeenCalledWith(
         "error",
         "Acceso Bloqueado",
-        "Por seguridad, el acceso ha sido bloqueado tras 3 intentos fallidos.",
+        "Cuenta bloqueada temporalmente por intentos fallidos.",
       ),
     );
 
-    // Verificar que el formulario se bloqueó
+    // Verificar que el mensaje de bloqueo aparece en la UI
     expect(
-      screen.getByText(
-        "Acceso bloqueado por seguridad tras 3 intentos fallidos.",
-      ),
+      screen.getByText("Cuenta bloqueada temporalmente por intentos fallidos."),
     ).toBeInTheDocument();
-
-    const usernameInput = screen.getByPlaceholderText("Nombre de usuario");
-    expect(usernameInput).toBeDisabled();
-
-    const disabledBtn = screen.getByRole("button", {
-      name: /Cuenta Bloqueada/i,
-    });
-    expect(disabledBtn).toBeDisabled();
   });
 });

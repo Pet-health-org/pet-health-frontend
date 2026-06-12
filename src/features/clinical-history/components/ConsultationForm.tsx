@@ -85,6 +85,8 @@ export function ConsultationForm({
   const [vaccineWarning, setVaccineWarning] = useState(false);
   const [localSubmitting, setLocalSubmitting] = useState(false);
 
+  const [backendAlerts, setBackendAlerts] = useState<any[]>([]);
+
   useEffect(() => {
     const evaluateVital = (value: number, min: number, max: number) => {
       if (value < min || value > max) {
@@ -149,7 +151,7 @@ export function ConsultationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (hasOutlierVitals && !formData.vitalsJustification.trim()) {
+    if ((hasOutlierVitals || backendAlerts.length > 0) && !formData.vitalsJustification.trim()) {
       alert(
         "Por favor, justifique los valores anormales de las constantes vitales.",
       );
@@ -166,7 +168,7 @@ export function ConsultationForm({
       const createdConsultation = await onSubmit(formData);
 
       if (applyVaccine && vaccineData.vaccineName) {
-        const historiaClinicaId = createdConsultation?.id;
+        const historiaClinicaId = createdConsultation?.id || createdConsultation?._id;
         if (!historiaClinicaId) {
           throw new Error("No se recibió el ID de la historia clínica creada.");
         }
@@ -191,13 +193,20 @@ export function ConsultationForm({
         await onAfterSave?.();
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      notify(
-        "error",
-        "Error",
-        "No se pudo finalizar la consulta o registrar la vacuna.",
-      );
+      
+      const responseData = error.response?.data;
+      if (responseData && responseData.alertas) {
+        setBackendAlerts(responseData.alertas);
+        notify("error", "Validación Fallida", responseData.message || "Valores fuera de rango. Requiere justificación.");
+      } else {
+        notify(
+          "error",
+          "Error",
+          "No se pudo finalizar la consulta o registrar la vacuna.",
+        );
+      }
     } finally {
       setLocalSubmitting(false);
     }
@@ -369,12 +378,19 @@ export function ConsultationForm({
                   </div>
                 </div>
 
-                {hasOutlierVitals && (
+                {(hasOutlierVitals || backendAlerts.length > 0) && (
                   <div className="mt-4 space-y-1 animate-in slide-in-from-top-2">
                     <label className="text-sm font-bold text-amber-700 flex items-center gap-1">
                       <AlertTriangle size={14} /> Justificación Constantes
                       Anormales *
                     </label>
+                    {backendAlerts.length > 0 && (
+                      <div className="text-xs text-amber-800 bg-amber-100 p-2 rounded mb-2">
+                        {backendAlerts.map((a, i) => (
+                          <div key={i}>• {a.constante}: {a.valorIngresado} {a.unidad} (Rango: {a.minimoEsperado}-{a.maximoEsperado})</div>
+                        ))}
+                      </div>
+                    )}
                     <textarea
                       className="w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none min-h-[60px] bg-amber-50"
                       value={formData.vitalsJustification}

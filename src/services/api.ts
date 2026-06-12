@@ -33,11 +33,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const token = localStorage.getItem('pethealth_token');
-    if (error.response && error.response.status === 401 && token) {
-      localStorage.removeItem('pethealth_token');
-      localStorage.removeItem('pethealth_user');
-      window.location.href = '/'; // Force redirect to home/login
+    if (error.response) {
+      if (error.response.status === 401) {
+        const token = localStorage.getItem('pethealth_token');
+        if (token) {
+          localStorage.removeItem('pethealth_token');
+          localStorage.removeItem('pethealth_user');
+          window.location.href = '/'; // Force redirect to home/login
+        }
+      } else if (error.response.status === 403) {
+        // Disparar evento global para que la UI muestre mensaje de "Acceso Denegado"
+        window.dispatchEvent(new CustomEvent('forbidden-access', {
+          detail: error.response.data?.message || 'No tienes permiso para realizar esta acción.'
+        }));
+      }
     }
     return Promise.reject(error);
   }

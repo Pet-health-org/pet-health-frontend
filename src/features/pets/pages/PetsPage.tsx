@@ -6,8 +6,10 @@ import { useOwners } from "../../owners/hooks/useOwners";
 import { useNotify } from "../../../context/NotificationContext";
 import { Pet } from "../types";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 
 export function PetsPage() {
+  const { user } = useAuth();
   const {
     pets,
     isLoading: isPetsLoading,
@@ -76,11 +78,13 @@ export function PetsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <div>
-        <h1 className="text-2xl font-bold text-[#0A2540]">Mascotas</h1>
-        <p className="text-slate-500">
-          Gestión de pacientes animales registrados en la clínica.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#0A2540]">Mascotas</h1>
+          <p className="text-slate-500">
+            Gestión de pacientes animales registrados en la clínica.
+          </p>
+        </div>
       </div>
 
       <PetList
@@ -89,6 +93,7 @@ export function PetsPage() {
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        canEdit={user?.rol?.name !== 'veterinario'}
       />
 
       {isFormOpen && (
