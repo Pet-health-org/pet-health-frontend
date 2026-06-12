@@ -6,7 +6,8 @@ import { useAppointments } from "../hooks/useAppointments";
 import { useOwners } from "../../owners/hooks/useOwners";
 import { usePets } from "../../pets/hooks/usePets";
 import { useNotify } from "../../../context/NotificationContext";
-import { Plus, LayoutGrid, List } from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
+import { Plus } from "lucide-react";
 
 export function AppointmentsPage() {
   const { appointments, isLoading, addAppointment, updateStatus } =
@@ -14,6 +15,10 @@ export function AppointmentsPage() {
   const { owners } = useOwners();
   const { pets } = usePets();
   const { notify } = useNotify();
+  const { user } = useAuth();
+
+  const isVeterinario = user?.rol?.name === "veterinario";
+  const canCreate = user?.rol?.name === "admin" || user?.rol?.name === "recepcionista";
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [initialFormData, setInitialFormData] = useState<any>(null);
@@ -21,7 +26,6 @@ export function AppointmentsPage() {
     new Date().toISOString().split("T")[0],
   );
   const [selectedVetId, setSelectedVetId] = useState("all");
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [veterinarians, setVeterinarians] = useState<any[]>([]);
 
   useEffect(() => {
@@ -29,12 +33,19 @@ export function AppointmentsPage() {
       try {
         const res = await getVeterinarios();
         setVeterinarians(res.data);
+        
+        if (isVeterinario) {
+           const myVet = res.data.find((v: any) => v.username === user?.username || v.userId === user?.id || v.id === user?.id);
+           if (myVet) {
+             setSelectedVetId(myVet.id);
+           }
+        }
       } catch (error) {
         console.error("Error fetching veterinarians:", error);
       }
     };
     fetchVets();
-  }, []);
+  }, [isVeterinario, user]);
 
   const handleAdd = (data?: any) => {
     setInitialFormData(data || null);
@@ -66,45 +77,29 @@ export function AppointmentsPage() {
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <div className="bg-white border border-slate-200 rounded-lg p-1 flex">
+          {canCreate && (
             <button
-              onClick={() => setViewMode("calendar")}
-              className={`p-1.5 rounded ${viewMode === "calendar" ? "bg-slate-100 text-[#0A2540]" : "text-slate-400 hover:text-slate-600"}`}
+              onClick={() => handleAdd()}
+              className="flex-1 sm:flex-none px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10"
             >
-              <LayoutGrid size={20} />
+              <Plus size={20} />
+              Agendar Cita
             </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded ${viewMode === "list" ? "bg-slate-100 text-[#0A2540]" : "text-slate-400 hover:text-slate-600"}`}
-            >
-              <List size={20} />
-            </button>
-          </div>
-          <button
-            onClick={() => handleAdd()}
-            className="flex-1 sm:flex-none px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10"
-          >
-            <Plus size={20} />
-            Agendar Cita
-          </button>
+          )}
         </div>
       </div>
 
-      {viewMode === "calendar" ? (
-        <AppointmentCalendar
-          appointments={appointments}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-          selectedVetId={selectedVetId}
-          onVetChange={setSelectedVetId}
-          veterinarians={veterinarians}
-          onAddClick={handleAdd}
-        />
-      ) : (
-        <div className="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-500">
-          Selecciona la vista de calendario para gestionar las citas.
-        </div>
-      )}
+      <AppointmentCalendar
+        appointments={appointments}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        selectedVetId={selectedVetId}
+        onVetChange={setSelectedVetId}
+        veterinarians={veterinarians}
+        onAddClick={canCreate ? handleAdd : () => {}}
+        canCreate={canCreate}
+        isVeterinario={isVeterinario}
+      />
 
       {isFormOpen && (
         <AppointmentForm

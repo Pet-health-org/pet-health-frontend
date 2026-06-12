@@ -14,9 +14,10 @@ interface AppointmentCalendarProps {
   selectedDate: string;
   onDateChange: (date: string) => void;
   selectedVetId: string;
-  onVetChange: (id: string) => void;
   veterinarians: any[];
   onAddClick: (data: any) => void;
+  canCreate?: boolean;
+  isVeterinario?: boolean;
 }
 
 type ViewMode = "day" | "week";
@@ -29,6 +30,8 @@ export function AppointmentCalendar({
   onVetChange,
   veterinarians,
   onAddClick,
+  canCreate = true,
+  isVeterinario = false,
 }: AppointmentCalendarProps) {
   const [view, setView] = useState<ViewMode>("week");
 
@@ -147,24 +150,26 @@ export function AppointmentCalendar({
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
-          <div className="relative flex-1 lg:flex-none">
-            <Filter
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <select
-              className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#A8DADC] outline-none shadow-sm transition-all appearance-none cursor-pointer"
-              value={selectedVetId}
-              onChange={(e) => onVetChange(e.target.value)}
-            >
-              <option value="all">Todos los Veterinarios</option>
-              {veterinarians.map((v: any) => (
-                <option key={v.id} value={v.id}>
-                  Dr/a. {v.username || v.firstName}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!isVeterinario && (
+            <div className="relative flex-1 lg:flex-none">
+              <Filter
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <select
+                className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#A8DADC] outline-none shadow-sm transition-all appearance-none cursor-pointer"
+                value={selectedVetId}
+                onChange={(e) => onVetChange(e.target.value)}
+              >
+                <option value="all">Todos los Veterinarios</option>
+                {veterinarians.map((v: any) => (
+                  <option key={v.id} value={v.id}>
+                    Dr/a. {v.username || v.firstName || v.nombreCompleto || 'Veterinario'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <input
             type="date"
             className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#A8DADC] outline-none shadow-sm transition-all"
@@ -241,13 +246,14 @@ export function AppointmentCalendar({
                       key={`${date}-${time}`}
                       status={status}
                       onClick={() =>
-                        status.type === "available" &&
+                        status.type === "available" && canCreate &&
                         onAddClick({
                           date,
                           time,
                           vetId: selectedVetId !== "all" ? selectedVetId : "",
                         })
                       }
+                      canCreate={canCreate}
                     />
                   );
                 })
@@ -256,13 +262,14 @@ export function AppointmentCalendar({
                   status={getStatus(selectedDate, time)}
                   isDayView
                   onClick={() =>
-                    getStatus(selectedDate, time).type === "available" &&
+                    getStatus(selectedDate, time).type === "available" && canCreate &&
                     onAddClick({
                       date: selectedDate,
                       time,
                       vetId: selectedVetId !== "all" ? selectedVetId : "",
                     })
                   }
+                  canCreate={canCreate}
                 />
               )}
             </React.Fragment>
@@ -277,10 +284,12 @@ function CalendarCell({
   status,
   onClick,
   isDayView,
+  canCreate = true,
 }: {
   status: any;
   onClick: () => void;
   isDayView?: boolean;
+  canCreate?: boolean;
 }) {
   if (status.type === "occupied") {
     return (
@@ -320,6 +329,10 @@ function CalendarCell({
         </div>
       </div>
     );
+  }
+
+  if (!canCreate) {
+    return <div className="h-24 border-b border-r border-slate-100 bg-slate-50/10"></div>;
   }
 
   return (

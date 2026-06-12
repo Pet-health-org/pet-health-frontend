@@ -291,6 +291,24 @@ export function PetProfilePage() {
               </div>
             )}
           </div>
+
+          {/* Observations Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Info size={16} /> Observaciones
+            </h3>
+            {pet.observaciones || pet.observations || pet.notas || pet.notes ? (
+              <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {pet.observaciones || pet.observations || pet.notas || pet.notes}
+              </p>
+            ) : (
+              <div className="p-4 bg-slate-50 rounded-xl text-center border border-dashed border-slate-200">
+                <p className="text-sm text-slate-500">
+                  No hay observaciones registradas para este paciente.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Health Status */}

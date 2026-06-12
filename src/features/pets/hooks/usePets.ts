@@ -17,6 +17,8 @@ export function usePets() {
         // Capitalize especie para que los íconos de la UI (PetList) coincidan ('Perro', 'Gato', etc)
         const especieName = p.especie ? p.especie.charAt(0).toUpperCase() + p.especie.slice(1) : 'Desconocida';
 
+        const ownerName = p.propietario?.nombreCompleto || p.propietario?.firstName || p.propietario?.nombre || p.dueno?.nombre || '';
+
         return {
           id: p.id,
           name: p.nombre,
@@ -25,6 +27,7 @@ export function usePets() {
           breedId: p.razaId,
           breed: p.raza?.nombre || 'Desconocida',
           ownerId: p.propietarioId,
+          ownerName: ownerName,
           birthDate: birthDate,
           sex: p.sexo,
           color: p.color,
