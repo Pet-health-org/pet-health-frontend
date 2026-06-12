@@ -49,42 +49,41 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('Admin123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockedMessage, setLockedMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (failedAttempts >= 3) {
-      notify('error', 'Acceso Bloqueado', 'Has superado el número de intentos permitidos.');
-      return;
-    }
+    if (isLocked) return;
 
     setIsSubmitting(true);
     
     try {
       const response = await authLogin({ username, password });
-      const { access_token } = response.data;
+      const { access_token, expires_in } = response.data;
       
-      await login(access_token);
+      // Pasar el token y el tiempo de expiración (por defecto 1800 si no viene)
+      await login(access_token, expires_in || 1800);
       
       notify('success', 'Bienvenido', 'Has iniciado sesión correctamente.');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
       
-      if (newAttempts >= 3) {
-        notify('error', 'Acceso Bloqueado', 'Por seguridad, el acceso ha sido bloqueado tras 3 intentos fallidos.');
+      const isNetworkError = !error.response;
+      const backendMessage = error.response?.data?.message || (isNetworkError ? 'Error de conexión con el servidor.' : 'Credenciales incorrectas.');
+      
+      if (backendMessage.includes('Cuenta bloqueada')) {
+        setIsLocked(true);
+        setLockedMessage(backendMessage);
+        notify('error', 'Acceso Bloqueado', backendMessage);
       } else {
-        notify('error', 'Error de acceso', `Credenciales incorrectas. Intento ${newAttempts}/3`);
+        notify('error', 'Error de acceso', backendMessage);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const isLocked = failedAttempts >= 3;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -98,7 +97,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           {isLocked && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-3">
               <span className="text-lg">⚠️</span>
-              <p>Acceso bloqueado por seguridad tras 3 intentos fallidos.</p>
+              <p>{lockedMessage || 'Acceso bloqueado por seguridad.'}</p>
             </div>
           )}
           

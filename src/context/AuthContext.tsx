@@ -16,16 +16,13 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string) => Promise<void>;
+  login: (token: string, expiresIn: number) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Time for inactivity logout (30 minutes)
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -43,22 +40,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem('pethealth_token');
     localStorage.removeItem('pethealth_user');
+    localStorage.removeItem('pethealth_expires_at');
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  const resetInactivityTimer = useCallback(() => {
+  const setupExpirationTimer = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (token) {
-      timeoutRef.current = setTimeout(() => {
-        console.log('Logging out due to inactivity');
+    const expiresAtStr = localStorage.getItem('pethealth_expires_at');
+    if (expiresAtStr && token) {
+      const expiresAt = parseInt(expiresAtStr, 10);
+      const timeLeft = expiresAt - Date.now();
+      
+      if (timeLeft <= 0) {
         logout();
-      }, INACTIVITY_TIMEOUT);
+      } else {
+        timeoutRef.current = setTimeout(() => {
+          console.log('Logging out due to token expiration');
+          logout();
+        }, timeLeft);
+      }
     }
   }, [token, logout]);
 
   const fetchProfile = useCallback(async (authToken: string) => {
     try {
-      // Temporarily set token in axios for this request
       const response = await api.get('/users/profile', {
         headers: { Authorization: `Bearer ${authToken}` }
       });
@@ -73,14 +78,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [logout]);
 
-  const login = async (newToken: string) => {
+  const login = async (newToken: string, expiresIn: number) => {
     setToken(newToken);
     localStorage.setItem('pethealth_token', newToken);
+    
+    // Guardar tiempo de expiración (expiresIn viene en segundos)
+    const expiresAt = Date.now() + expiresIn * 1000;
+    localStorage.setItem('pethealth_expires_at', expiresAt.toString());
+    
     await fetchProfile(newToken);
     setIsLoading(false);
   };
 
-  // Check token and setup inactivity listeners
   useEffect(() => {
     const initAuth = async () => {
       if (token && !user) {
@@ -94,24 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     initAuth();
-
-    // Inactivity listeners
-    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-    
-    if (token) {
-      activityEvents.forEach(event => {
-        window.addEventListener(event, resetInactivityTimer);
-      });
-      resetInactivityTimer();
-    }
+    setupExpirationTimer();
 
     return () => {
-      activityEvents.forEach(event => {
-        window.removeEventListener(event, resetInactivityTimer);
-      });
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [token, user, fetchProfile, logout, resetInactivityTimer]);
+  }, [token, user, fetchProfile, logout, setupExpirationTimer]);
 
   return (
     <AuthContext.Provider value={{ 

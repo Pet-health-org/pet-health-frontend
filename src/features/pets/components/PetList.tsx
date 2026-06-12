@@ -10,9 +10,10 @@ interface PetListProps {
   onEdit: (pet: Pet) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  canEdit?: boolean;
 }
 
-export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps) {
+export function PetList({ pets, owners, onEdit, onDelete, onAdd, canEdit = true }: PetListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getOwnerName = (ownerId: string) => {
@@ -48,13 +49,15 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button
-          onClick={onAdd}
-          className="w-full sm:w-auto px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2"
-        >
-          <Plus size={20} />
-          Nueva Mascota
-        </button>
+        {canEdit && (
+          <button
+            onClick={onAdd}
+            className="w-full sm:w-auto px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus size={20} />
+            Nueva Mascota
+          </button>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -65,7 +68,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
               <th className="p-4 font-semibold">Especie / Raza</th>
               <th className="p-4 font-semibold">Propietario</th>
               <th className="p-4 font-semibold">Peso</th>
-              <th className="p-4 font-semibold text-right">Acciones</th>
+              {canEdit && <th className="p-4 font-semibold text-right">Acciones</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -93,27 +96,29 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd }: PetListProps)
                   <td className="p-4 text-sm text-slate-600">
                     {pet.weight} kg
                   </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => onEdit(pet)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                      title="Editar"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(pet.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Eliminar"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+                  {canEdit && (
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => onEdit(pet)}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Editar"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(pet.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500">
+                <td colSpan={canEdit ? 5 : 4} className="p-8 text-center text-slate-500">
                   No se encontraron mascotas que coincidan con la búsqueda.
                 </td>
               </tr>

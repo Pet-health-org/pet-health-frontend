@@ -8,6 +8,7 @@ type MenuItem = {
   badge?: number;
 };
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
 import {
   LayoutDashboard,
   Users,
@@ -24,6 +25,7 @@ import { GlobalSearch } from '../components/GlobalSearch';
 
 export function DashboardLayout() {
   const { user, logout } = useAuth();
+  const { notify } = useNotify();
   const location = useLocation();
 
   const [lowStockCount, setLowStockCount] = useState(0);
@@ -45,11 +47,20 @@ export function DashboardLayout() {
     fetchLowStock();
   }, [user]);
 
+  // Listener para errores de Acceso Denegado (403)
+  useEffect(() => {
+    const handleForbidden = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      notify('error', 'Acceso Denegado', customEvent.detail);
+    };
+    window.addEventListener('forbidden-access', handleForbidden);
+    return () => window.removeEventListener('forbidden-access', handleForbidden);
+  }, [notify]);
+
   const getMenuItems = (): MenuItem[] => {
     const baseItems: MenuItem[] = [
       { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/appointments', label: 'Citas', icon: Calendar },
-      { path: '/notifications', label: 'Notificaciones', icon: Bell },
     ];
 
     const role = user?.rol?.name;
@@ -62,6 +73,7 @@ export function DashboardLayout() {
         { path: '/clinical-history', label: 'Historial Clínico', icon: FileText },
         { path: '/vaccinations', label: 'Vacunas', icon: Syringe },
         { path: '/inventory', label: 'Inventario', icon: Package, badge: lowStockCount },
+        { path: '/notifications', label: 'Notificaciones', icon: Bell },
         { path: '/reports', label: 'Reportes', icon: BarChart3 },
       ];
     }
