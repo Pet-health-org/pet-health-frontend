@@ -36,7 +36,7 @@ export function GlobalSearch() {
         let searchResults: SearchResult[] = [];
 
         // 1. Search Propietarios
-        const propRes = await api.get('/propietarios');
+        const propRes = await api.get('/propietarios?silent=true').catch(() => ({ data: [] }));
         const owners = propRes.data.filter((o: any) => 
           (o.nombreCompleto || '').toLowerCase().includes(lowerTerm) ||
           (o.numeroIdentificacion || '').includes(lowerTerm) ||
@@ -54,7 +54,7 @@ export function GlobalSearch() {
         })));
 
         // 2. Search Mascotas
-        const petRes = await api.get('/mascotas');
+        const petRes = await api.get('/mascotas?silent=true').catch(() => ({ data: [] }));
         const pets = petRes.data.filter((p: any) => 
           (p.nombre || '').toLowerCase().includes(lowerTerm) ||
           (p.especie?.nombre || '').toLowerCase().includes(lowerTerm) ||
@@ -72,9 +72,9 @@ export function GlobalSearch() {
 
         // 3. Search Staff (Veterinarios, Recepcionistas, Admins)
         const [vets, recs, admins] = await Promise.all([
-          api.get('/veterinarios').catch(() => ({ data: [] })),
-          api.get('/recepcionistas').catch(() => ({ data: [] })),
-          api.get('/admin').catch(() => ({ data: [] }))
+          api.get('/veterinarios?silent=true').catch(() => ({ data: [] })),
+          api.get('/recepcionistas?silent=true').catch(() => ({ data: [] })),
+          api.get('/admin?silent=true').catch(() => ({ data: [] }))
         ]);
 
         const allStaff = [...vets.data, ...recs.data, ...admins.data];

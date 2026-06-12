@@ -170,7 +170,7 @@ export function DashboardLayout() {
               Panel de Control
             </h2>
 
-            {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista') && (
+            {(user?.rol?.name === 'admin' || user?.rol?.name === 'recepcionista' || user?.rol?.name === 'veterinario') && (
               <div className="flex-1 max-w-lg hidden sm:block">
                 <GlobalSearch />
               </div>

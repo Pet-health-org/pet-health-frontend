@@ -41,10 +41,10 @@ export function ConsultationForm({
     anamnesis: "",
     physicalExam: "",
     vitals: {
-      weight: pet.weight,
-      temperature: 38.5,
-      heartRate: 80,
-      respiratoryRate: 20,
+      weight: pet.weight || "",
+      temperature: "",
+      heartRate: "",
+      respiratoryRate: "",
     },
     vitalsJustification: "",
     diagnosis: "",
@@ -88,10 +88,12 @@ export function ConsultationForm({
   const [backendAlerts, setBackendAlerts] = useState<any[]>([]);
 
   useEffect(() => {
-    const evaluateVital = (value: number, min: number, max: number) => {
-      if (value < min || value > max) {
+    const evaluateVital = (value: any, min: number, max: number) => {
+      if (value === "" || value === null || isNaN(value as number)) return "normal";
+      const numValue = Number(value);
+      if (numValue < min || numValue > max) {
         // Just checking if out of bounds. We can treat > 20% deviation as critical
-        const dev = Math.max(min - value, value - max) / ((max + min) / 2);
+        const dev = Math.max(min - numValue, numValue - max) / ((max + min) / 2);
         return dev > 0.2 ? "critical" : "warning";
       }
       return "normal";
@@ -212,10 +214,10 @@ export function ConsultationForm({
     }
   };
 
-  const handleVitalChange = (name: keyof VitalSigns, value: number) => {
+  const handleVitalChange = (name: keyof VitalSigns, value: string) => {
     setFormData({
       ...formData,
-      vitals: { ...formData.vitals, [name]: value },
+      vitals: { ...formData.vitals, [name]: value === "" ? "" : parseFloat(value) },
     });
   };
 
@@ -307,7 +309,7 @@ export function ConsultationForm({
                       onChange={(e) =>
                         handleVitalChange(
                           "temperature",
-                          parseFloat(e.target.value),
+                          e.target.value
                         )
                       }
                     />
@@ -329,7 +331,7 @@ export function ConsultationForm({
                       onChange={(e) =>
                         handleVitalChange(
                           "heartRate",
-                          parseFloat(e.target.value),
+                          e.target.value
                         )
                       }
                     />
@@ -351,7 +353,7 @@ export function ConsultationForm({
                       onChange={(e) =>
                         handleVitalChange(
                           "respiratoryRate",
-                          parseFloat(e.target.value),
+                          e.target.value
                         )
                       }
                     />
@@ -372,7 +374,7 @@ export function ConsultationForm({
                       className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none"
                       value={formData.vitals.weight}
                       onChange={(e) =>
-                        handleVitalChange("weight", parseFloat(e.target.value))
+                        handleVitalChange("weight", e.target.value)
                       }
                     />
                   </div>

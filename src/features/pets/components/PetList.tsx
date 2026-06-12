@@ -16,9 +16,10 @@ interface PetListProps {
 export function PetList({ pets, owners, onEdit, onDelete, onAdd, canEdit = true }: PetListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const getOwnerName = (ownerId: string) => {
-    const owner = owners.find(o => o.id === ownerId);
-    return owner ? `${owner.firstName} ${owner.lastName}` : 'Desconocido';
+  const getOwnerName = (pet: Pet) => {
+    const owner = owners.find(o => o.id === pet.ownerId);
+    if (owner) return `${owner.firstName} ${owner.lastName}`;
+    return (pet as any).ownerName || 'Desconocido';
   };
 
   const getSpeciesIcon = (species: string) => {
@@ -33,7 +34,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd, canEdit = true 
   const filteredPets = pets.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getOwnerName(p.ownerId).toLowerCase().includes(searchTerm.toLowerCase())
+    getOwnerName(p).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -91,7 +92,7 @@ export function PetList({ pets, owners, onEdit, onDelete, onAdd, canEdit = true 
                     <div className="text-xs">{pet.breed}</div>
                   </td>
                   <td className="p-4 text-sm text-slate-600">
-                    {getOwnerName(pet.ownerId)}
+                    {getOwnerName(pet)}
                   </td>
                   <td className="p-4 text-sm text-slate-600">
                     {pet.weight} kg

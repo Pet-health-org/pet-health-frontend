@@ -43,11 +43,24 @@ api.interceptors.response.use(
         }
       } else if (error.response.status === 403) {
         // Disparar evento global para que la UI muestre mensaje de "Acceso Denegado"
-        window.dispatchEvent(new CustomEvent('forbidden-access', {
-          detail: error.response.data?.message || 'No tienes permiso para realizar esta acción.'
-        }));
+        if (!error.config?.url?.includes('silent=true')) {
+          window.dispatchEvent(new CustomEvent('forbidden-access', {
+            detail: error.response.data?.message || 'No tienes permiso para realizar esta acción.'
+          }));
+        }
       }
     }
+    
+    // Format error message to be more user friendly
+    if (error.response?.data?.message) {
+      const msg = error.response.data.message;
+      if (Array.isArray(msg)) {
+        error.response.data.message = 'Revisa los campos: ' + msg.join(', ');
+      } else if (typeof msg === 'string' && msg === 'Internal server error') {
+        error.response.data.message = 'Ha ocurrido un error interno en el servidor.';
+      }
+    }
+
     return Promise.reject(error);
   }
 );

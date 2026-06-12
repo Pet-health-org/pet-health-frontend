@@ -35,7 +35,6 @@ export function VaccinationPage() {
   // Search for Gestion
   const [searchTerm, setSearchTerm] = useState("");
 
-  const upcoming = getUpcomingVaccines();
 
   const filteredPets = pets.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -59,18 +58,19 @@ export function VaccinationPage() {
     );
   };
 
-  // Filter upcoming vaccines for the panel
-  const filteredUpcoming = upcoming.filter((r) => {
+  // Filter all vaccines for the panel
+  const filteredRecords = records.filter((r) => {
     const pet = pets.find((p) => p.id === r.petId);
     if (!pet) return false;
 
     const owner = owners.find((o) => o.id === pet.ownerId);
+    const ownerNameStr = owner
+      ? `${owner.firstName} ${owner.lastName}`
+      : (pet as any)?.ownerName || "Desconocido";
+
     const searchMatch =
       pet.name.toLowerCase().includes(panelSearch.toLowerCase()) ||
-      (owner &&
-        `${owner.firstName} ${owner.lastName}`
-          .toLowerCase()
-          .includes(panelSearch.toLowerCase()));
+      ownerNameStr.toLowerCase().includes(panelSearch.toLowerCase());
     const speciesMatch = panelSpeciesFilter
       ? pet.species === panelSpeciesFilter
       : true;
@@ -102,7 +102,7 @@ export function VaccinationPage() {
           className={`pb-3 font-semibold text-sm transition-colors ${activeTab === "panel" ? "border-b-2 border-[#0A2540] text-[#0A2540]" : "text-slate-500 hover:text-slate-700"}`}
           onClick={() => setActiveTab("panel")}
         >
-          Panel de Pendientes
+          Panel de Vacunas
         </button>
         <button
           className={`pb-3 font-semibold text-sm transition-colors ${activeTab === "gestion" ? "border-b-2 border-[#0A2540] text-[#0A2540]" : "text-slate-500 hover:text-slate-700"}`}
@@ -157,21 +157,22 @@ export function VaccinationPage() {
                     <th className="p-4 font-bold">Mascota</th>
                     <th className="p-4 font-bold">Especie</th>
                     <th className="p-4 font-bold">Propietario</th>
-                    <th className="p-4 font-bold">Vacuna Pendiente</th>
-                    <th className="p-4 font-bold">Fecha Vencimiento</th>
+                    <th className="p-4 font-bold">Vacuna Aplicada</th>
+                    <th className="p-4 font-bold">Fecha Aplicación</th>
+                    <th className="p-4 font-bold">Próximo Refuerzo</th>
                     <th className="p-4 font-bold text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredUpcoming.length > 0 ? (
-                    filteredUpcoming.map((r) => {
+                  {filteredRecords.length > 0 ? (
+                    filteredRecords.map((r) => {
                       const pet = pets.find((p) => p.id === r.petId);
                       const owner = pet
                         ? owners.find((o) => o.id === pet.ownerId)
                         : null;
                       const ownerName = owner
                         ? `${owner.firstName} ${owner.lastName}`
-                        : "Desconocido";
+                        : (pet as any)?.ownerName || "Desconocido";
 
                       const boosterDate = new Date(r.nextBoosterDate);
                       const today = new Date();
@@ -194,12 +195,15 @@ export function VaccinationPage() {
                             <Syringe size={14} className="text-slate-400" />
                             {r.vaccineName}
                           </td>
+                          <td className="p-4 text-slate-600">
+                            {new Date(r.applicationDate).toLocaleDateString()}
+                          </td>
                           <td className="p-4">
                             <span
-                              className={`px-2 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${isExpired ? "bg-red-100 text-red-700 border border-red-200" : "bg-amber-100 text-amber-700 border border-amber-200"}`}
+                              className={`px-2 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${isExpired ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700 border border-blue-200"}`}
                             >
                               {boosterDate.toLocaleDateString()}{" "}
-                              {isExpired ? "(Vencida)" : "(Próxima)"}
+                              {isExpired ? "(Vencida)" : "(Pendiente)"}
                             </span>
                           </td>
                           <td className="p-4 text-center">
@@ -222,10 +226,10 @@ export function VaccinationPage() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="p-12 text-center text-slate-400 italic"
                       >
-                        No hay vacunas pendientes o vencidas con estos filtros.
+                        No hay vacunas registradas con estos filtros.
                       </td>
                     </tr>
                   )}
