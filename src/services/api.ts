@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const getBaseUrl = (): string => {
   try {
-    return import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000';
+    return import.meta.env.VITE_API_URL || '/api';
   } catch (e) {
-    return 'http://127.0.0.1:3000';
+    return '/api';
   }
 };
 

@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=t=>e.post(`/citas`,t),n=()=>e.get(`/citas`),r=(t,n)=>e.patch(`/citas/${t}`,n),i=t=>e.delete(`/citas/${t}`),a=n,o=t,s=r,c=i;export{s as i,c as n,a as r,o as t};

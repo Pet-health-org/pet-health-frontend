@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=t=>e.post(`/vacunas`,t),n=()=>e.get(`/vacunas`),r=t=>e.get(`/vacunas/mascota/${t}`),i=n,a=t;export{r as n,i as r,a as t};

@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=t=>e.post(`/mascotas`,t),n=()=>e.get(`/mascotas`),r=t=>e.get(`/mascotas/propietario/${t}`),i=t=>e.get(`/mascotas/${t}`),a=(t,n)=>e.patch(`/mascotas/${t}`,n),o=t=>e.delete(`/mascotas/${t}`),s=n;export{s as a,i,n,o,r,a as s,t};

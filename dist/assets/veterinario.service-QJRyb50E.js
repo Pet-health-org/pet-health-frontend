@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=()=>e.get(`/veterinarios?silent=true`),n=t;export{n,t};
