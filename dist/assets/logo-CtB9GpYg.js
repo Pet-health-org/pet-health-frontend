@@ -1,0 +1,1 @@
+var e=`/assets/logo-mENF9ttj.png`;export{e as t};
