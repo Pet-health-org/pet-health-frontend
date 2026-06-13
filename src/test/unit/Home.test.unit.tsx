@@ -85,6 +85,10 @@ describe("Home Component", () => {
       data: { access_token: "fake-token", expires_in: 3600 },
     } as any);
 
+    // Llenar formulario explícitamente
+    fireEvent.change(screen.getByPlaceholderText("Nombre de usuario"), { target: { value: "admin" } });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), { target: { value: "Admin123!" } });
+
     // Encontrar y enviar el form
     const btnSubmit = screen.getAllByRole("button", {
       name: /Entrar al Sistema/i,
@@ -92,7 +96,7 @@ describe("Home Component", () => {
     fireEvent.click(btnSubmit);
 
     await waitFor(() => {
-      // Verificar que authLogin fue llamado con admin/Admin123! (valores por defecto del state)
+      // Verificar que authLogin fue llamado con admin/Admin123!
       expect(authLogin).toHaveBeenCalledWith({
         username: "admin",
         password: "Admin123!",
@@ -117,7 +121,13 @@ describe("Home Component", () => {
     renderHome();
     fireEvent.click(screen.getByRole("button", { name: /Entrar al Sistema/i }));
 
-    vi.mocked(authLogin).mockRejectedValue(new Error("Credenciales inválidas"));
+    vi.mocked(authLogin).mockRejectedValue({
+      response: { status: 401 }
+    });
+
+    // Llenar formulario explícitamente
+    fireEvent.change(screen.getByPlaceholderText("Nombre de usuario"), { target: { value: "admin" } });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), { target: { value: "Admin123!" } });
 
     const btnSubmit = screen.getAllByRole("button", {
       name: /Entrar al Sistema/i,
@@ -143,6 +153,10 @@ describe("Home Component", () => {
         data: { message: "Cuenta bloqueada temporalmente por intentos fallidos." }
       }
     });
+
+    // Llenar formulario explícitamente
+    fireEvent.change(screen.getByPlaceholderText("Nombre de usuario"), { target: { value: "admin" } });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), { target: { value: "Admin123!" } });
 
     const btnSubmit = screen.getAllByRole("button", {
       name: /Entrar al Sistema/i,
