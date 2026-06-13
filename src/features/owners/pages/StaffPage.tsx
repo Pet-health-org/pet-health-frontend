@@ -1,19 +1,14 @@
 import React, { useState } from "react";
 import { Users, UserPlus, Shield, X } from "lucide-react";
 import { useNotify } from "../../../context/NotificationContext";
-import { findAll as getVeterinarios } from "../../../services/veterinario.service";
-import { findAll as getRecepcionistas } from "../../../services/recepcionista.service";
-import { findAll as getAdmins } from "../../../services/admin.service";
-import { register } from "../../../services/user.service";
+import { findAllIntegrantes, invite } from "../../../services/integrante.service";
 
 export function StaffPage() {
   const { notify } = useNotify();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
-    password: "",
-    rolId: "veterinario", // default
+    tipoAcceso: "frontend" as "frontend" | "backend",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
@@ -22,14 +17,8 @@ export function StaffPage() {
   const fetchStaff = async () => {
     setIsLoading(true);
     try {
-      const [vetsRes, recsRes, adminsRes] = await Promise.all([
-        getVeterinarios().catch(() => ({ data: [] })),
-        getRecepcionistas().catch(() => ({ data: [] })),
-        getAdmins().catch(() => ({ data: [] })),
-      ]);
-
-      const allStaff = [...vetsRes.data, ...recsRes.data, ...adminsRes.data];
-      setStaff(allStaff);
+      const res = await findAllIntegrantes();
+      setStaff(res.data || []);
     } catch (error) {
       console.error("Error fetching staff:", error);
     } finally {
@@ -46,26 +35,24 @@ export function StaffPage() {
     setIsSubmitting(true);
 
     try {
-      await register(formData);
+      await invite(formData);
       notify(
         "success",
-        "Personal Creado",
-        "La cuenta ha sido creada exitosamente.",
+        "Invitación Enviada",
+        "Se ha enviado el código de invitación al correo ingresado.",
       );
       setIsFormOpen(false);
       setFormData({
-        username: "",
         email: "",
-        password: "",
-        rolId: "veterinario",
+        tipoAcceso: "frontend",
       });
       fetchStaff(); // Refresh list after creation
     } catch (error: any) {
-      console.error("Error creating staff:", error);
+      console.error("Error sending invite:", error);
       notify(
         "error",
         "Error",
-        error.response?.data?.message || "No se pudo crear la cuenta",
+        error.response?.data?.message || "No se pudo enviar la invitación",
       );
     } finally {
       setIsSubmitting(false);
@@ -113,51 +100,57 @@ export function StaffPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {staff.map((user: any) => (
+                {staff.map((item: any) => {
+                  const displayUsername = item.user?.username || item.username || 'Pendiente de registro';
+                  const displayEmail = item.user?.email || item.email || 'Sin correo';
+                  const displayRol = item.tipoAcceso === 'backend' ? 'Administrador' : 'Recepcionista';
+                  const displayStatus = item.user?.status || item.status || 'Pendiente';
+                  
+                  return (
                   <tr
-                    key={user.id}
+                    key={item.id}
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#0A2540] font-bold">
-                          {user.username.charAt(0).toUpperCase()}
+                          {displayUsername.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-medium text-slate-800">
-                          {user.username}
+                          {displayUsername}
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 text-slate-600">{user.email}</td>
+                    <td className="p-4 text-slate-600">{displayEmail}</td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
-                          user.rol.name === "veterinario"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-blue-100 text-blue-700"
+                          displayRol === "Administrador"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-emerald-100 text-emerald-700"
                         }`}
                       >
-                        {user.rol.name}
+                        {displayRol}
                       </span>
                     </td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          user.status === "activo"
+                          displayStatus === "activo" || displayStatus === "Activo"
                             ? "bg-green-100 text-green-700"
-                            : user.status === "inactivo"
+                            : displayStatus === "inactivo"
                               ? "bg-slate-100 text-slate-700"
-                              : "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
-                        {user.status}
+                        {displayStatus}
                       </span>
                     </td>
                     <td className="p-4 text-right text-slate-500 text-sm">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(item.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -193,20 +186,6 @@ export function StaffPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Nombre de Usuario
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Correo Electrónico
                 </label>
                 <input
@@ -216,45 +195,26 @@ export function StaffPage() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
+                  placeholder="usuario@example.com"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Contraseña temporal
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Rol a asignar
+                  Tipo de Acceso
                 </label>
                 <select
-                  value={formData.rolId}
+                  value={formData.tipoAcceso}
                   onChange={(e) =>
-                    setFormData({ ...formData, rolId: e.target.value })
+                    setFormData({ ...formData, tipoAcceso: e.target.value as "frontend" | "backend" })
                   }
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] outline-none bg-white"
                 >
-                  <option value="veterinario">
-                    Veterinario (Atención Médica)
-                  </option>
-                  <option value="recepcionista">
-                    Recepcionista (Gestión de Citas)
-                  </option>
-                  <option value="admin">Administrador (Control Total)</option>
+                  <option value="frontend">Recepcionista (Frontend)</option>
+                  <option value="backend">Administrador (Backend)</option>
                 </select>
                 <p className="text-xs text-slate-500 mt-2">
-                  * Seleccione el rol adecuado para otorgar los permisos en el
-                  sistema.
+                  * Al enviar la invitación, el usuario recibirá un código en su correo válido por 24 horas.
                 </p>
               </div>
 
