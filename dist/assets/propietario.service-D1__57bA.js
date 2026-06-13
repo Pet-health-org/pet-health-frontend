@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=t=>e.post(`/propietarios`,t),n=()=>e.get(`/propietarios?silent=true`),r=t=>e.get(`/propietarios/${t}?silent=true`),i=(e,t)=>Promise.resolve({data:!0}),a=e=>Promise.resolve({data:!0}),o=r;export{a,o as i,n,i as o,r,t};

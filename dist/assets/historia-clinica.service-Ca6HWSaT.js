@@ -1,1 +1,0 @@
-import{b as e}from"./index-gvwJ449I.js";var t=t=>e.post(`/historias-clinicas`,t),n=()=>e.get(`/historias-clinicas`),r=t=>e.get(`/historias-clinicas/mascota/${t}`),i=n,a=t,o=r;export{o as i,r as n,i as r,a as t};
