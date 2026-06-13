@@ -1,4 +1,5 @@
-name: Deploy-frontend
+name: Frontend CI/CD Pipeline
+
 on:
   push:
     branches: [main]
@@ -6,23 +7,63 @@ on:
     branches: [main]
 
 jobs:
-  tests:
-    name: Run tests
+  # Fase de Integración Continua (CI)
+  integration:
+    name: Integración Continua (Tests & Build)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Descargar el código
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: '20'
+          cache: 'npm' # cachear dependencias para mayor velocidad
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Instalar dependencias
+        run: npm ci # Usa ci en lugar de install para reproducibilidad exacta
 
-      - name: Inicio de trabajo
-        run: |
-          echo "Iniciando el trabajo de despliegue del react"
-          echo "verificando el entorno de trabajo"
+      - name: Ejecutar pruebas unitarias
+        run: npm run test:unit
+        
+      - name: Construir el proyecto para producción
+        run: npm run build
+
+      - name: Guardar artefacto (dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/
+          retention-days: 1 # Ahorra espacio guardando el artefacto solo 1 día
+
+  # Fase de Despliegue Continuo (CD)
+  deploy:
+    name: Despliegue a Netlify
+    needs: integration # Depende de que las pruebas y la construcción sean exitosas
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Solo despliega en la rama main
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Descargar el artefacto (dist)
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/
+
+      - name: Desplegar en Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Despliegue automático desde GitHub Actions - CI/CD"
+          enable-commit-comment: true
+        env:
+          # Recuerda configurar estos secretos en tu repositorio (Settings > Secrets and variables)
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
