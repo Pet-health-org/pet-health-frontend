@@ -4,11 +4,10 @@ import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
-import { LoadingScreen } from './components/LoadingScreen';
+import { GlobalLoader } from './components/GlobalLoader';
 
-import { Home } from './pages/Home';
-
-// Lazy loaded modules
+// Lazy loading de páginas para mostrar el GlobalLoader
+const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const OwnersPage = lazy(() => import('./features/owners/pages/OwnersPage').then(m => ({ default: m.OwnersPage })));
 const OwnerProfilePage = lazy(() => import('./features/owners/pages/OwnerProfilePage').then(m => ({ default: m.OwnerProfilePage })));
@@ -28,7 +27,7 @@ function App() {
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<GlobalLoader />}>
             <Routes>
               <Route path="/" element={<Home />} />
               
