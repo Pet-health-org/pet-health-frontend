@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotificationContext';
 import { login as authLogin } from '../services/auth.service';
+import { registerIntegrante } from '../services/integrante.service';
 import logo from '../assets/styles/logo.png';
 
 type ModalType = 'login' | 'register' | null;
@@ -33,11 +34,18 @@ export function Home() {
           >
             Entrar al Sistema
           </button>
+          <button 
+            onClick={() => setActiveModal('register')}
+            className="px-12 py-4 bg-white text-[#0A2540] border-2 border-[#0A2540] rounded-xl font-bold shadow-xl shadow-[#0A2540]/10 hover:bg-slate-50 hover:-translate-y-1 transition-all duration-200 text-lg"
+          >
+            Registro de Integrante
+          </button>
         </div>
       </div>
 
       {/* Modals */}
       {activeModal === 'login' && <LoginModal onClose={() => setActiveModal(null)} />}
+      {activeModal === 'register' && <RegisterIntegranteModal onClose={() => setActiveModal(null)} />}
     </div>
   );
 }
@@ -141,6 +149,101 @@ function LoginModal({ onClose }: { onClose: () => void }) {
                   Verificando...
                 </>
               ) : isLocked ? 'Cuenta Bloqueada' : 'Entrar al Sistema'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegisterIntegranteModal({ onClose }: { onClose: () => void }) {
+  const { notify } = useNotify();
+  const [formData, setFormData] = useState({
+    codigo: '',
+    username: '',
+    password: '',
+    nombreCompleto: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await registerIntegrante(formData);
+      notify('success', 'Registro exitoso', 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.');
+      onClose();
+    } catch (error: any) {
+      console.error('Register error:', error);
+      const backendMessage = error.response?.data?.message || 'Error al registrar la cuenta. Verifica el código.';
+      notify('error', 'Error en el registro', backendMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-[#0A2540]">Registro de Integrante</h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Código de Invitación</label>
+              <input 
+                type="text" 
+                value={formData.codigo}
+                onChange={(e) => setFormData({...formData, codigo: e.target.value})}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all"
+                placeholder="Ej. INV-123456"
+                required 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
+              <input 
+                type="text" 
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all"
+                placeholder="Ej. juan_perez"
+                required 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+              <input 
+                type="password" 
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all"
+                placeholder="••••••••"
+                required 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo (Opcional)</label>
+              <input 
+                type="text" 
+                value={formData.nombreCompleto}
+                onChange={(e) => setFormData({...formData, nombreCompleto: e.target.value})}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#A8DADC] focus:border-[#0A2540] outline-none transition-all"
+                placeholder="Ej. Juan Pérez"
+              />
+            </div>
+            
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full py-4 mt-4 bg-[#0A2540] text-white rounded-xl font-bold hover:bg-[#113255] transition-all flex items-center justify-center shadow-lg shadow-[#0A2540]/20 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+            >
+              {isSubmitting ? 'Registrando...' : 'Completar Registro'}
             </button>
           </form>
         </div>
