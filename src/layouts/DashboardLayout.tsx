@@ -20,6 +20,7 @@ import {
   Bell,
   BarChart3,
   LogOut,
+  Mail,
 } from 'lucide-react';
 import { GlobalSearch } from '../components/GlobalSearch';
 
@@ -69,6 +70,7 @@ export function DashboardLayout() {
       return [
         ...baseItems,
         { path: '/staff', label: 'Personal', icon: Users },
+        { path: '/integrantes', label: 'Invitaciones', icon: Mail },
         { path: '/pets', label: 'Mascotas', icon: Dog },
         { path: '/clinical-history', label: 'Historial Clínico', icon: FileText },
         { path: '/vaccinations', label: 'Vacunas', icon: Syringe },

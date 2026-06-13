@@ -13,6 +13,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m
 const OwnersPage = lazy(() => import('./features/owners/pages/OwnersPage').then(m => ({ default: m.OwnersPage })));
 const OwnerProfilePage = lazy(() => import('./features/owners/pages/OwnerProfilePage').then(m => ({ default: m.OwnerProfilePage })));
 const StaffPage = lazy(() => import('./features/owners/pages/StaffPage').then(m => ({ default: m.StaffPage })));
+const IntegrantesPage = lazy(() => import('./features/integrantes/pages/IntegrantesPage').then(m => ({ default: m.IntegrantesPage })));
 const PetsPage = lazy(() => import('./features/pets/pages/PetsPage').then(m => ({ default: m.PetsPage })));
 const PetProfilePage = lazy(() => import('./features/pets/pages/PetProfilePage').then(m => ({ default: m.PetProfilePage })));
 const AppointmentsPage = lazy(() => import('./features/appointments/pages/AppointmentsPage').then(m => ({ default: m.AppointmentsPage })));
@@ -57,6 +58,7 @@ function App() {
                   {/* Rutas Solo Admin */}
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                     <Route path="/staff" element={<StaffPage />} />
+                    <Route path="/integrantes" element={<IntegrantesPage />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                   </Route>
