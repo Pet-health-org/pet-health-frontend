@@ -16,6 +16,7 @@ interface AppointmentCalendarProps {
   selectedVetId: string;
   veterinarians: any[];
   onAddClick: (data: any) => void;
+  onVetChange: (id: string) => void;
   canCreate?: boolean;
   isVeterinario?: boolean;
 }
