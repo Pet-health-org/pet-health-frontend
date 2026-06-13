@@ -1,31 +1,9 @@
-<<<<<<< Updated upstream
-import React, { Suspense } from 'react';
-=======
 import React, { Suspense, lazy } from 'react';
->>>>>>> Stashed changes
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
-<<<<<<< Updated upstream
-import { GlobalLoader } from './components/GlobalLoader';
-
-// Lazy loading de páginas para mostrar el GlobalLoader
-const Home = React.lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
-const Dashboard = React.lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const OwnersPage = React.lazy(() => import('./features/owners/pages/OwnersPage').then(m => ({ default: m.OwnersPage })));
-const OwnerProfilePage = React.lazy(() => import('./features/owners/pages/OwnerProfilePage').then(m => ({ default: m.OwnerProfilePage })));
-const StaffPage = React.lazy(() => import('./features/owners/pages/StaffPage').then(m => ({ default: m.StaffPage })));
-const PetsPage = React.lazy(() => import('./features/pets/pages/PetsPage').then(m => ({ default: m.PetsPage })));
-const PetProfilePage = React.lazy(() => import('./features/pets/pages/PetProfilePage').then(m => ({ default: m.PetProfilePage })));
-const AppointmentsPage = React.lazy(() => import('./features/appointments/pages/AppointmentsPage').then(m => ({ default: m.AppointmentsPage })));
-const ClinicalHistoryPage = React.lazy(() => import('./features/clinical-history/pages/ClinicalHistoryPage').then(m => ({ default: m.ClinicalHistoryPage })));
-const VaccinationPage = React.lazy(() => import('./features/vaccinations/pages/VaccinationPage').then(m => ({ default: m.VaccinationPage })));
-const InventoryPage = React.lazy(() => import('./features/inventory/pages/InventoryPage').then(m => ({ default: m.InventoryPage })));
-const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const ReportsPage = React.lazy(() => import('./features/reports/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
-=======
 import { LoadingScreen } from './components/LoadingScreen';
 
 import { Home } from './pages/Home';
@@ -43,18 +21,13 @@ const VaccinationPage = lazy(() => import('./features/vaccinations/pages/Vaccina
 const InventoryPage = lazy(() => import('./features/inventory/pages/InventoryPage').then(m => ({ default: m.InventoryPage })));
 const NotificationsPage = lazy(() => import('./features/notifications/pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const ReportsPage = lazy(() => import('./features/reports/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
->>>>>>> Stashed changes
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
-<<<<<<< Updated upstream
-          <Suspense fallback={<GlobalLoader />}>
-=======
           <Suspense fallback={<LoadingScreen />}>
->>>>>>> Stashed changes
             <Routes>
               <Route path="/" element={<Home />} />
               
