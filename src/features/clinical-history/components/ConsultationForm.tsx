@@ -167,7 +167,16 @@ export function ConsultationForm({
         return;
       }
 
-      const createdConsultation = await onSubmit(formData);
+      const payload = {
+        ...formData,
+        vitals: {
+          weight: Number(formData.vitals.weight) || 0,
+          temperature: Number(formData.vitals.temperature) || 0,
+          heartRate: Number(formData.vitals.heartRate) || 0,
+          respiratoryRate: Number(formData.vitals.respiratoryRate) || 0,
+        }
+      };
+      const createdConsultation = await onSubmit(payload as any);
 
       if (applyVaccine && vaccineData.vaccineName) {
         const historiaClinicaId = createdConsultation?.id || createdConsultation?._id;
