@@ -90,6 +90,7 @@ export function IntegrantesPage() {
               <thead>
                 <tr className="bg-slate-50 text-slate-600 text-sm border-b border-slate-200">
                   <th className="p-4 font-semibold">Usuario</th>
+                  <th className="p-4 font-semibold">Nombre Completo</th>
                   <th className="p-4 font-semibold">Correo</th>
                   <th className="p-4 font-semibold">Rol Asignado</th>
                   <th className="p-4 font-semibold">Estado</th>
@@ -101,8 +102,9 @@ export function IntegrantesPage() {
               <tbody className="divide-y divide-slate-200">
                 {staff.map((item: any) => {
                   const displayUsername = item.username || 'Pendiente';
+                  const displayNombreCompleto = item.nombreCompleto || 'Sin nombre';
                   const displayEmail = item.email || 'Sin correo';
-                  const displayRol = item.tipoAcceso === 'backend' ? 'Administrador' : 'Recepcionista';
+                  const displayRol = item.tipoAcceso;
                   const displayStatus = item.isActive ? 'Activo' : 'Inactivo';
                   
                   return (
@@ -120,11 +122,12 @@ export function IntegrantesPage() {
                         </span>
                       </div>
                     </td>
+                    <td className="p-4 text-slate-600">{displayNombreCompleto}</td>
                     <td className="p-4 text-slate-600">{displayEmail}</td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
-                          displayRol === "Administrador"
+                          displayRol === "backend"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-emerald-100 text-emerald-700"
                         }`}
