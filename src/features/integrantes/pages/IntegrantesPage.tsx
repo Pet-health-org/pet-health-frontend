@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Send, Shield, X } from "lucide-react";
+import { Mail, Send, Shield, X, Search, ArrowDown, ArrowUp } from "lucide-react";
 import { useNotify } from "../../../context/NotificationContext";
 import { findAllIntegrantes, invite } from "../../../services/integrante.service";
 
@@ -13,6 +13,8 @@ export function IntegrantesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchStaff = async () => {
     setIsLoading(true);
@@ -59,37 +61,102 @@ export function IntegrantesPage() {
     }
   };
 
+  const filteredStaff = [...staff]
+    .filter((item: any) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      const username = (item.username || "").toLowerCase();
+      const nombreCompleto = (item.nombreCompleto || "").toLowerCase();
+      const email = (item.email || "").toLowerCase();
+      return (
+        username.includes(query) ||
+        nombreCompleto.includes(query) ||
+        email.includes(query)
+      );
+    })
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0A2540]">
-            Invitación de Integrantes
+          <h1 className="text-3xl font-bold text-[#0A2540]">
+            Equipo de Trabajo
           </h1>
-          <p className="text-slate-500">
-            Envía códigos de registro al personal e invítalos a la plataforma.
+          <p className="text-slate-500 mt-1">
+            Gestiona los integrantes y envía códigos de registro al personal.
           </p>
         </div>
         <button
           onClick={() => setIsFormOpen(true)}
-          className="px-4 py-2 bg-[#0A2540] text-white rounded-lg font-medium hover:bg-[#113255] transition-all flex items-center gap-2"
+          className="px-5 py-2.5 bg-[#0A2540] text-white rounded-xl font-medium hover:bg-[#113255] transition-all flex items-center gap-2 shadow-sm hover:shadow"
         >
           <Mail size={18} />
-          Enviar Invitación
+          Invitar Integrante
         </button>
       </div>
 
-      {isLoading ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A2540]"></div>
+      {/* Main Content Area */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Table Toolbar */}
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#0A2540]">
+                Integrantes Registrados
+              </h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Directorio completo de los usuarios con acceso al sistema.
+              </p>
+            </div>
+            
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Buscar usuario..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#A8DADC] outline-none transition-shadow"
+                />
+              </div>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:text-[#0A2540] transition-colors w-full sm:w-auto justify-center shadow-sm"
+              >
+                {sortOrder === 'desc' ? (
+                  <>
+                    <ArrowDown size={16} className="text-slate-400" />
+                    <span>Más recientes</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowUp size={16} className="text-slate-400" />
+                    <span>Más antiguos</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      ) : staff.length > 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+
+        {isLoading ? (
+          <div className="p-16 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A2540]"></div>
+          </div>
+        ) : staff.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-slate-600 text-sm border-b border-slate-200">
-                  <th className="p-4 font-semibold">Usuario</th>
+                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                  <th className="p-4 pl-6 font-semibold">Usuario</th>
                   <th className="p-4 font-semibold">Nombre Completo</th>
                   <th className="p-4 font-semibold">Correo</th>
                   <th className="p-4 font-semibold">Rol Asignado</th>
@@ -100,7 +167,7 @@ export function IntegrantesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {staff.map((item: any) => {
+                {filteredStaff.map((item: any) => {
                   const displayUsername = item.username || 'Pendiente';
                   const displayNombreCompleto = item.nombreCompleto || 'Sin nombre';
                   const displayEmail = item.email || 'Sin correo';
@@ -154,19 +221,21 @@ export function IntegrantesPage() {
               </tbody>
             </table>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
-          <Shield size={48} className="mx-auto mb-4 text-[#A8DADC]" />
-          <h3 className="text-lg font-bold text-[#0A2540] mb-2">
-            Sin personal invitado
-          </h3>
-          <p className="max-w-md mx-auto text-sm">
-            Aún no has enviado invitaciones. Usa el botón superior para
-            enviar códigos de acceso al equipo.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="p-16 text-center text-slate-500 bg-white">
+            <Shield size={48} className="mx-auto mb-4 text-[#A8DADC]" />
+            <h3 className="text-lg font-bold text-[#0A2540] mb-2">
+              Sin personal invitado
+            </h3>
+            <p className="max-w-md mx-auto text-sm">
+              Aún no has enviado invitaciones. Usa el botón superior para
+              enviar códigos de acceso al equipo.
+            </p>
+          </div>
+        )}
+      </div>
+
+
 
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
